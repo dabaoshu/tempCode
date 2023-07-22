@@ -4,6 +4,7 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import WebGL from 'three/addons/capabilities/WebGL.js'
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 import { loadFile } from "./utils"
 
@@ -22,7 +23,7 @@ const white = new THREE.Color('white')
 const waterPosition = new THREE.Vector3(0, 0, 0.8)
 const near = 0.
 const far = 2.
-const waterSize = 512
+const waterSize = 1024
 
 // Create directional light
 // TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
@@ -51,13 +52,13 @@ const controls = new OrbitControls(
     canvas
 )
 
-controls.target = waterPosition
-
-controls.minPolarAngle = 0
-controls.maxPolarAngle = Math.PI / 2. - 0.1
-
-controls.minDistance = 1.5
-controls.maxDistance = 3.
+// controls.target = waterPosition
+//
+// controls.minPolarAngle = 0
+// controls.maxPolarAngle = Math.PI / 2. - 0.1
+//
+// controls.minDistance = 1.5
+// controls.maxDistance = 3.
 
 // Target for computing the water refraction
 const temporaryRenderTarget = new THREE.WebGLRenderTarget(width, height)
@@ -74,10 +75,10 @@ targetGeometry.attributes.position.array[2] = waterPosition.z
 const targetMesh = new THREE.Mesh(targetGeometry)
 
 // Geometries
-const waterGeometry = new THREE.PlaneGeometry(2, 2, waterSize, waterSize)
+const waterGeometry = new THREE.PlaneGeometry(20, 20, waterSize, waterSize)
 
 // Environment
-const floorGeometry = new THREE.PlaneGeometry(100, 100, 1, 1)
+const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1)
 
 const objLoader = new OBJLoader()
 
@@ -137,6 +138,9 @@ const plantLoaded = new Promise((resolve) => {
 // Skybox
 const cubeTextureLoader = new THREE.CubeTextureLoader()
 
+/**
+ * 天空盒
+ */
 const skybox = cubeTextureLoader.load([
     'assets/TropicalSunnyDay_px.jpg', 'assets/TropicalSunnyDay_nx.jpg',
     'assets/TropicalSunnyDay_py.jpg', 'assets/TropicalSunnyDay_ny.jpg',
@@ -145,7 +149,9 @@ const skybox = cubeTextureLoader.load([
 
 scene.background = skybox
 
-
+/**
+ * 水流
+ */
 class WaterSimulation {
 
     constructor() {
@@ -522,19 +528,45 @@ function onMouseMove(event) {
     }
 }
 
+const light1 = new THREE.DirectionalLight(0xffffff, 1); // 设置光源颜色和强度
+light1.position.set(1, 1, 1); // 设置光源位置
+scene.add(light1);
+
+const loader = new GLTFLoader();
+// 加载船体
+loader.load('models/chuang.glb', function(gltf1) {
+    const chuangModel = gltf1.scene;
+    // 将模型缩小为原始大小的一半
+    chuangModel.scale.set(0.001, 0.001, 0.001);
+    scene.add(chuangModel);
+});
+
+// 加载水下机器人
+loader.load('models/reboot.glb', function(gltf2) {
+    const rebootModel = gltf2.scene;
+    // 将模型缩小为原始大小的一半
+    rebootModel.scale.set(0.3, 0.3, 0.3);
+    rebootModel.position.set(0, 0, 0.5);
+    // 将模型绕 x 轴旋转 180 度
+    rebootModel.rotation.x = Math.PI;
+    scene.add(rebootModel);
+});
+
+
+
 const loaded = [
-    waterSimulation.loaded,
-    water.loaded,
+    // waterSimulation.loaded,
+    // water.loaded,
     environmentMap.loaded,
     environment.loaded,
     caustics.loaded,
-    sharkLoaded,
+    // sharkLoaded,
     rockLoaded,
     plantLoaded,
 ]
 
 Promise.all(loaded).then(() => {
-    const envGeometries = [floorGeometry, shark, rock1, rock2, plant]
+    const envGeometries = [floorGeometry, rock1, rock2, plant]
 
     environmentMap.setGeometries(envGeometries)
     environment.setGeometries(envGeometries)
@@ -557,3 +589,33 @@ Promise.all(loaded).then(() => {
     animate()
 })
 
+
+// 添加窗口变化监听器
+addEventListener('resize', () => {
+    // 更新修改相机比例
+    camera.aspect = window.innerWidth / window.innerHeight
+    // 更新摄像机的投影矩阵
+    camera.updateProjectionMatrix()
+    // 更新画布大小
+    renderer.setSize(
+        window.innerWidth, // 宽度
+        window.innerHeight // 高度
+    );
+    // 更新画布像素比
+    renderer.setPixelRatio(window.devicePixelRatio)
+})
+
+
+// 监听鼠标双击事件
+addEventListener('dblclick', () => {
+    // 获取当前状态
+    const fullscreenElement = document.fullscreenElement
+    if(fullscreenElement){
+        // 退出全屏
+        document.exitFullscreen()
+
+        return
+    }
+    // 请求画布全屏
+    renderer.domElement.requestFullscreen()
+})
