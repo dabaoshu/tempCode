@@ -19,8 +19,8 @@ const height = window.innerHeight
 const black = new THREE.Color('black')
 const white = new THREE.Color('white')
 
-// Constants
-const waterPosition = new THREE.Vector3(0, 0, 0.8)
+// 设置水深100米
+const waterPosition = new THREE.Vector3(0, 0, 10)
 const near = 0.
 const far = 2.
 const waterSize = 1024
@@ -35,7 +35,7 @@ lightCamera.lookAt(0, 0, 0)
 // Create Renderer
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100)
-camera.position.set(-1.5, -1.5, 1)
+camera.position.set(6, 2, 20)
 camera.up.set(0, 0, 1)
 scene.add(camera)
 
@@ -78,8 +78,9 @@ const targetMesh = new THREE.Mesh(targetGeometry)
 const waterGeometry = new THREE.PlaneGeometry(20, 20, waterSize, waterSize)
 
 // Environment
-const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1)
+const floorGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1)
 
+console.log("floorGeometry", floorGeometry);
 const objLoader = new OBJLoader()
 
 // 加载鲨鱼
@@ -155,9 +156,9 @@ scene.background = skybox
 class WaterSimulation {
 
     constructor() {
-        this._camera = new THREE.OrthographicCamera(0, 0, 1, 0, 0, 2000)
+        this._camera = new THREE.OrthographicCamera(0, 0, 1, 0, 0, 2000);
 
-        this._geometry = new THREE.PlaneGeometry(2, 2)
+        this._geometry = new THREE.PlaneGeometry(2, 2);
 
         this._targetA = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType})
         this._targetB = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType})
@@ -514,8 +515,6 @@ function animate() {
 
 function onMouseMove(event) {
     const rect = canvas.getBoundingClientRect()
-    console.log(rect)
-
     mouse.x = (event.clientX - rect.left) * 2 / width - 1
     mouse.y = - (event.clientY - rect.top) * 2 / height + 1
 
