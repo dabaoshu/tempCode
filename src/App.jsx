@@ -1,15 +1,11 @@
-import React from 'react';
-
+import React from "react";
+import FloatPane from "./FloatPane";
 function App() {
   return (
-    <div className="absolute right-60">
-      <h1>Hello, Vite + React!</h1>
+    <div class="absolute top-20 right-60">
+      <FloatPane></FloatPane>
     </div>
   );
 }
 
 export default App;
-
-
-
-
