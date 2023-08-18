@@ -18,9 +18,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: 8080 // 修改为你想要的端口号
+    port: 8082 // 修改为你想要的端口号
   }, 
-
+  
   
 });
 

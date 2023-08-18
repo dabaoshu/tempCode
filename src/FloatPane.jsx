@@ -17,8 +17,8 @@ const list = [
 
 const Select = () => {
   return (
-    <div class="flex justify-center items-center">
-      <select id="select" class="px-4 py-1 border rounded focus:outline-none">
+    <div className="flex justify-center items-center">
+      <select id="select" className="px-4 py-1 border rounded focus:outline-none">
         <option value="option1">基于面板控制</option>
         <option value="option2">选择遥控器</option>
       </select>
@@ -46,18 +46,18 @@ export default function FloatPane() {
   //   const activeClass = `border-b-2 font-medium text-blue-500 border-blue-500`;
 
   return (
-    <div class={"w-52"}>
-      {/* <div class="bg-white">
-        <nav class="flex flex-col sm:flex-row">
+    <div className={"w-52"}>
+      {/* <div className="bg-white">
+        <nav className="flex flex-col sm:flex-row">
           <button
-            class={`text-gray-600 text-sm block hover:text-blue-500 focus:outline-none   ${
+            className={`text-gray-600 text-sm block hover:text-blue-500 focus:outline-none   ${
               activeKey === "hand" ? activeClass : ""
             }`}
           >
             手动控制模式
           </button>
           <button
-            class={`text-gray-600 text-sm ml-1 block hover:text-blue-500 focus:outline-none ${
+            className={`text-gray-600 text-sm ml-1 block hover:text-blue-500 focus:outline-none ${
               activeKey === "hand" ? activeClass : ""
             } `}
           >
@@ -67,18 +67,18 @@ export default function FloatPane() {
       </div> */}
       <Select></Select>
 
-      <div class=" p-4">
-        <div class="flex  flex-wrap justify-center">
+      <div className=" p-4">
+        <div className="flex  flex-wrap justify-center">
           <button
             onClick={() => start()}
-            class="bg-blue-500 hover:bg-blue-600 w-20 text-white py-2 px-4 rounded-md m-1"
+            className="bg-blue-500 hover:bg-blue-600 w-20 text-white py-2 px-4 rounded-md m-1"
           >
             开始
           </button>
           <button
             disabled={!runing}
             onClick={() => end()}
-            class="bg-pink-500 hover:bg-pink-600 w-20 text-white py-2 px-4 rounded-md m-1 disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed"
+            className="bg-pink-500 hover:bg-pink-600 w-20 text-white py-2 px-4 rounded-md m-1 disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed"
           >
             结束
           </button>
@@ -86,7 +86,7 @@ export default function FloatPane() {
             <button
               onClick={() => Btnclick(o.type)}
               key={o.type}
-              class="bg-green-500 hover:bg-green-600 w-16 text-white py-2 px-4 rounded-md m-1 text-sm"
+              className="bg-green-500 hover:bg-green-600 w-16 text-white py-2 px-4 rounded-md m-1 text-sm"
             >
               {o.label}
             </button>

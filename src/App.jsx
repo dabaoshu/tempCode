@@ -2,7 +2,7 @@ import React from "react";
 import FloatPane from "./FloatPane";
 function App() {
   return (
-    <div class="absolute top-20 right-60">
+    <div className="absolute top-20 right-60">
       <FloatPane></FloatPane>
     </div>
   );
