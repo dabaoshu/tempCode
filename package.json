@@ -5,6 +5,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tweenjs/tween.js": "^21.0.0",
     "autoprefixer": "^10.4.15",
     "dat.gui": "^0.7.9",
     "postcss": "^8.4.28",
