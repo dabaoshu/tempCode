@@ -2,12 +2,15 @@
   "scripts": {
     "serve": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "npm run serve"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.17",
     "@tweenjs/tween.js": "^21.0.0",
     "autoprefixer": "^10.4.15",
     "dat.gui": "^0.7.9",
+    "keymaster": "^1.6.2",
     "postcss": "^8.4.28",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -16,6 +19,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.4",
+    "classnames": "^2.3.2",
+    "less": "^4.2.0",
+    "less-loader": "^11.1.3",
     "vite": "^4.3.9"
   }
 }

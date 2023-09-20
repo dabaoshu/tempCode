@@ -1,10 +1,13 @@
 import React from "react";
 import FloatPane from "./FloatPane";
+import ButtomPane from "./components/ButtomPane";
+import './Robot'
 function App() {
   return (
-    <div className="absolute top-20 right-60">
+    <>
       <FloatPane></FloatPane>
-    </div>
+      <ButtomPane></ButtomPane>
+    </>
   );
 }
 

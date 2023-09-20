@@ -6,8 +6,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import Tween from '@tweenjs/tween.js';
-import { loadFile, eventBus } from "./utils";
-console.log(Tween);
+import { loadFile, eventBus } from "./src/Robot/utils";
 // 用于保存定时器的ID
 class RobotExport {
     running = undefined
@@ -197,6 +196,10 @@ const fn = async (type) => {
     console.log("action:", action)
 };
 eventBus.on("click1", fn);
+const robotReset=()=>{
+    
+}
+eventBus.on("robotReset", robotReset);
 
 const stats = new Stats();
 stats.showPanel(0);
@@ -955,7 +958,6 @@ window.addEventListener('keydown', async function (event) {
         console.log(action)
         robotExport.updateModel(action);
     }
-
 });
 
 
