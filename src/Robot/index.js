@@ -11,103 +11,103 @@ import { loadFile, eventBus } from "./utils";
 class RobotExport {
     running = undefined
     intervalId = undefined
-    // startRun = (action) => {
-    //     const run = async () => {
-    //         this.running = true
-    //         try {
-    //             // 调用API接口
-    //             const response = await fetch("http://localhost:5000/api/rov/step", {
-    //                 method: "POST",
-    //                 headers: {
-    //                     "Content-Type": "application/json"
-    //                 },
-    //                 body: JSON.stringify({
-    //                     n_step: 20,
-    //                     action: action
-    //                 })
-    //             });
-    //             if (!response.ok) {
-    //                 throw new Error("API request failed");
-    //             }
-    //             const data = await response.json();
-    //
-    //             // 解构final_state数组中的位置和角度信息
-    //             const [x, y, z, rotationX, rotationY, rotationZ] = data.data_state || []
-    //
-    //             const list = [x, y, z, rotationX, rotationY, rotationZ];
-    //             console.log("list:" + list);
-    //             let resetX = rebootModel.position.x + list[0];
-    //             let resetY = rebootModel.position.y + list[1];
-    //             let resetZ = rebootModel.position.z + list[2];
-    //             let resetRotX = rebootModel.rotation.x + list[3];
-    //             let resetRotY = rebootModel.rotation.y + list[4];
-    //             let resetRotZ = rebootModel.rotation.z + list[5];
-    //             let position = rebootModel.position;
-    //             // // 创建一个新的Tween对象，用于更新xyz坐标运动
-    //             // let tween = new Tween.Tween(rebootModel.position)
-    //             //     .to({ x: resetX, y: resetY, z: resetZ }, 1000) // 2秒内移动到指定位置
-    //             //     .easing(Tween.Easing.Quadratic.Out) // 使用缓动函数使动画更平滑
-    //             //     .start(); // 开始动画
-    //             //
-    //             // // 创建一个新的Tween对象，用于更新xyz的角度运动
-    //             // let tweenRotation = new Tween.Tween(rebootModel.rotation)
-    //             //     .to({ x: resetRotX, y: resetRotY, z: resetRotZ }, 1000) // 2秒内旋转到指定角度
-    //             //     .easing(Tween.Easing.Quadratic.Out) // 使用缓动函数使动画更平滑
-    //             //     .start(); // 开始动画
-    //             //
-    //             // console.log("机器人的坐标系position:", position);
-    //             // console.log("机器人的坐标系rotation:", rebootModel.rotation);
-    //             reTry()
-    //         } catch (error) {
-    //             console.error("API request error:", error);
-    //         }
-    //     }
-    //
-    //     const reTry = () => {
-    //         this.intervalId = setTimeout(async () => {
-    //             if (this.running) {
-    //                 run()
-    //             }
-    //         }, 1000); // 每隔0.1秒调用一次API接口
-    //     }
-    //     run()
-    // }
     startRun = (action) => {
-        const run = () => {
-            return new Promise(async (resolve, reject) => {
-                this.running = true
-                try {
-                    // 调用API接口
-                    const response = await fetch("http://localhost:5000/api/rov/step", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            n_step: 20,
-                            action: action
-                        })
-                    });
-                    if (!response.ok) {
-                        throw new Error("API request failed");
-                    }
-                    const data = await response.json();
-
-                    // 解构final_state数组中的位置和角度信息
-                    const [x, y, z, rotationX, rotationY, rotationZ] = data.data_state || []
-
-                    const list = [x, y, z, rotationX, rotationY, rotationZ];
-                    console.log("list:" + list);
-
-                    resolve(list); // 解析list
-                } catch (error) {
-                    console.error("API request error:", error);
-                    reject(error); // 如果有错误，拒绝Promise
+        const run = async () => {
+            this.running = true
+            try {
+                // 调用API接口
+                const response = await fetch("http://localhost:5000/api/rov/step", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        n_step: 160,
+                        action: action
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error("API request failed");
                 }
-            });
+                const data = await response.json();
+    
+                // 解构final_state数组中的位置和角度信息
+                const [x, y, z, rotationX, rotationY, rotationZ] = data.data_state || []
+    
+                const list = [x, y, z, rotationX, rotationY, rotationZ];
+                console.log("list:" + list);
+                let resetX = rebootModel.position.x + list[0];
+                let resetY = rebootModel.position.y + list[1];
+                let resetZ = rebootModel.position.z + list[2];
+                let resetRotX = rebootModel.rotation.x + list[3];
+                let resetRotY = rebootModel.rotation.y + list[4];
+                let resetRotZ = rebootModel.rotation.z + list[5];
+                let position = rebootModel.position;
+                // 创建一个新的Tween对象，用于更新xyz坐标运动
+                let tween = new Tween.Tween(rebootModel.position)
+                    .to({ x: resetX, y: resetY, z: resetZ }, 1000) // 2秒内移动到指定位置
+                    .easing(Tween.Easing.Quadratic.Out) // 使用缓动函数使动画更平滑
+                    .start(); // 开始动画
+                
+                // 创建一个新的Tween对象，用于更新xyz的角度运动
+                let tweenRotation = new Tween.Tween(rebootModel.rotation)
+                    .to({ x: resetRotX, y: resetRotY, z: resetRotZ }, 1000) // 2秒内旋转到指定角度
+                    .easing(Tween.Easing.Quadratic.Out) // 使用缓动函数使动画更平滑
+                    .start(); // 开始动画
+                
+                console.log("机器人的坐标系position:", position);
+                console.log("机器人的坐标系rotation:", rebootModel.rotation);
+                reTry()
+            } catch (error) {
+                console.error("API request error:", error);
+            }
         }
-
+    
+        const reTry = () => {
+            this.intervalId = setTimeout(async () => {
+                if (this.running) {
+                    run()
+                }
+            }, 1000); // 每隔0.1秒调用一次API接口
+        }
+        run()
     }
+    // startRun = (action) => {
+    //     const run = () => {
+    //         return new Promise(async (resolve, reject) => {
+    //             this.running = true
+    //             try {
+    //                 // 调用API接口
+    //                 const response = await fetch("http://localhost:5000/api/rov/step", {
+    //                     method: "POST",
+    //                     headers: {
+    //                         "Content-Type": "application/json"
+    //                     },
+    //                     body: JSON.stringify({
+    //                         n_step: 20,
+    //                         action: action
+    //                     })
+    //                 });
+    //                 if (!response.ok) {
+    //                     throw new Error("API request failed");
+    //                 }
+    //                 const data = await response.json();
+
+    //                 // 解构final_state数组中的位置和角度信息
+    //                 const [x, y, z, rotationX, rotationY, rotationZ] = data.data_state || []
+
+    //                 const list = [x, y, z, rotationX, rotationY, rotationZ];
+    //                 console.log("list:" + list);
+
+    //                 resolve(list); // 解析list
+    //             } catch (error) {
+    //                 console.error("API request error:", error);
+    //                 reject(error); // 如果有错误，拒绝Promise
+    //             }
+    //         });
+    //     }
+
+    // }
     stop = () => {
         this.running = false
         if (this.intervalId) {
@@ -188,7 +188,7 @@ const fn = async (type) => {
             action = [0.0, 0.0, 0.0, 0.0, 0.0, -800.0];
             robotExport.startRun(action)
             break;
-        case "end":
+        case "stop":
             robotExport.stop()
             break;
         // 其他case...
@@ -701,7 +701,7 @@ function animate() {
     }
 
     // 更新Tween，即渲染模型运动
-    // Tween.update();
+    Tween.update();
     // camera.position.copy(rebootModelPosition);
     // camera.position.x += 2;
     // camera.position.y += 2;
@@ -879,129 +879,3 @@ addEventListener("dblclick", () => {
     // 请求画布全屏
     renderer.domElement.requestFullscreen();
 });
-
-
-// // 创建一个对象来存储按键状态
-// var keys = {
-//     up: false,
-//     down: false,
-//     left: false,
-//     right: false,
-//     ahead: false,
-//     behind: false,
-//     rollUp: false,
-//     rollDown: false,
-//     pitchUp: false,
-//     pitchDown: false,
-//     yawUp: false,
-//     yawDown: false
-// };
-
-// // 添加键盘按下事件监听器
-// window.addEventListener('keydown', async function (event) {
-//     console.log("键盘按键按下:", event.code);
-//     let action = [];
-//     switch (event.code) {
-//         case 'KeyW':
-//             action = [0.0, 0.0, 0.1, 0.0, 0.0, 0.0];
-//             keys.up = true;
-//             break;
-//         case 'KeyS':
-//             action = [0.0, 0.0, -0.1, 0.0, 0.0, 0.0];
-//             keys.down = true;
-//             break;
-//         case 'KeyA':
-//             action = [0.0, -0.1, 0.0, 0.0, 0.0, 0.0];
-//             keys.left = true;
-//             break;
-//         case 'KeyD':
-//             action = [0.0, 0.1, 0.0, 0.0, 0.0, 0.0];
-//             keys.right = true;
-//             break;
-//         case 'ShiftLeft':
-//         case 'ShiftRight':
-//             action = [1, 0.0, 0.0, 0.0, 0.0, 0.0];
-//             keys.ahead = true;
-//             break;
-//         case 'ControlLeft':
-//         case 'ControlRight':
-//             action = [-1, 0.0, 0.0, 0.0, 0.0, 0.0];
-//             keys.behind = true;
-//             break;
-//         case 'Numpad1':
-//             action = [0.0, 0.0, 0.0, 8, 0.0, 0.0];
-//             keys.rollUp = true;
-//             break;
-//         case 'Numpad2':
-//             action = [0.0, 0.0, 0.0, -8, 0.0, 0.0];
-//             keys.rollDown = true;
-//             break;
-//         case 'Numpad4':
-//             action = [0.0, 0.0, 0.0, 0.0, 8, 0.0];
-//             keys.pitchUp = true;
-//             break;
-//         case 'Numpad5':
-//             action = [0.0, 0.0, 0.0, 0.0, -8, 0.0];
-//             keys.pitchDown = true;
-//             break;
-//         case 'Numpad7':
-//             action = [0.0, 0.0, 0.0, 0.0, 0.0, 8];
-//             keys.yawUp = true;
-//             break;
-//         case 'Numpad8':
-//             action = [0.0, 0.0, 0.0, 0.0, 0.0, -800.0];
-//             keys.yawDown = true;
-//             break;
-//     }
-//     if (action.length !== 0){
-//         // const list = await robotExport.startRun(action);
-//         console.log(action)
-//         robotExport.updateModel(action);
-//     }
-// });
-
-
-// // 添加键盘释放事件监听器
-// window.addEventListener('keyup', function(event) {
-//     console.log("键盘按键松开:", event.code);
-//     switch (event.code) {
-//         case 'KeyW':
-//             keys.up = false;
-//             break;
-//         case 'KeyS':
-//             keys.down = false;
-//             break;
-//         case 'KeyA':
-//             keys.left = false;
-//             break;
-//         case 'KeyD':
-//             keys.right = false;
-//             break;
-//         case 'ShiftLeft':
-//         case 'ShiftRight':
-//             keys.ahead = false;
-//             break;
-//         case 'ControlLeft':
-//         case 'ControlRight':
-//             keys.behind = false;
-//             break;
-//         case 'Numpad1':
-//             keys.rollUp = false;
-//             break;
-//         case 'Numpad2':
-//             keys.rollDown = false;
-//             break;
-//         case 'Numpad4':
-//             keys.pitchUp = false;
-//             break;
-//         case 'Numpad5':
-//             keys.pitchDown = false;
-//             break;
-//         case 'Numpad7':
-//             keys.yawUp = false;
-//             break;
-//         case 'Numpad8':
-//             keys.yawDown = false;
-//             break;
-//     }
-// });
