@@ -98,10 +98,11 @@ class ROV(DynamicParameters):
                            [0, 0, 0, 0, self.Iy-self.Mdq*K, 0],
                            [0, 0, 0, 0, 0, self.Iz-self.Ndr*K]])
         self.M_ = inv(self.M)
-        self.state = np.array([0, 0, 0, pi*0.5, pi*1.2, 0, 0, 0, 0, 0, 0, 0], dtype=np.float32)
+        self.state = np.array([0, 0, 0, pi*0.0, pi*0.5, pi*0.0, 0, 0, 0, 0, 0, 0], dtype=np.float32)
         self.f = np.array([0, 0, 0, 0, 0, 0], dtype=np.float32)
         self.t = [0.0]
         self.X = [np.array(self.state)]
+        self.last_state = np.array(self.state)
 
     def dxdt(self, state):
         f = self.f
@@ -185,15 +186,21 @@ class ROV(DynamicParameters):
             self.ode45(dt)
             self.t.append(self.t[-1]+dt)
         state_list = np.array(self.X)
+        data_state = self.state-self.last_state
+        self.last_state = np.array(self.state)
         # self.t = [self.t[-1]]
         # self.X = [self.X[-1]]
-        return state_list, self.t, self.state
+        return data_state
 
-    def reset(self, state):
+#     def reset(self, state):
+    def reset(self, state=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])):
         self.state = np.array(state, dtype=np.float32)
         self.f = np.array([0, 0, 0, 0, 0, 0], dtype=np.float32)
         self.t = [0.0]
         self.X = [np.array(self.state)]
+        self.last_state = np.array(self.state)
+
+
 
     def render(self):
         state = np.array(self.X)
@@ -203,9 +210,11 @@ class ROV(DynamicParameters):
         ax1.plot(t, state[:, 3], linewidth=2)
         ax1.plot(t, state[:, 4], linewidth=2)
         ax1.plot(t, state[:, 5], linewidth=2)
+        plt.legend(['rotx', 'roty', 'rotz'])
         ax1.set_title('旋转角度')
         ax2 = fig.add_subplot(122)
-        ax2.plot(t, state[:, 0:3], linewidth=2)
+        f1, f2, f3 = ax2.plot(t, state[:, 0:3], linewidth=2)
+        plt.legend([f1, f2, f3], ['x', 'y', 'z'])
         ax2.set_title('位置')
         plt.show()
         fig2 = plt.figure(2)
@@ -221,7 +230,10 @@ class ROV(DynamicParameters):
 
 if __name__ == '__main__':
     rov = ROV()
-    rov.step(n_step=500)
+    action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    x = rov.step(n_step=400, action=action)
+    print(f'action = {action}')
+    print(x)
     rov.render()
 
 app = Flask(__name__)
@@ -234,18 +246,23 @@ def step():
     data = request.get_json()
     n_step = data.get('n_step', control_step)
     action = np.array(data.get('action', [0, 0, 0, 0, 0, 0]))
-    state_list, t, final_state = rov.step(n_step=n_step, action=action)
+    data_state = rov.step(n_step=n_step, action=action)
     response = {
-        'state_list': state_list.tolist(),
-        't': t,
-        'final_state': final_state.tolist()
+        'data_state': data_state.tolist()
     }
     return jsonify(response)
 
-@app.route('/api/rov/render', methods=['GET'])
-def render():
-    rov.render()
-    return 'Rendered'
+@app.route('/api/rov/state', methods=['GET'])
+def state():
+    response = {
+        'data_state': rov.state.tolist()
+    }
+    return jsonify(response)
+
+@app.route('/api/rov/reset', methods=['GET'])
+def reset():
+    rov.reset()
+    return 'successfully'
 
 if __name__ == '__main__':
     app.run(debug=True)
