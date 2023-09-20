@@ -1,11 +1,13 @@
 import React from "react";
-import FloatPane from "./FloatPane";
+import FloatRightPane from "./FloatPane";
 import ButtomPane from "./components/ButtomPane";
 import './Robot'
+import FloatLeftPane from "./components/FloatLeftPane";
 function App() {
   return (
     <>
-      <FloatPane></FloatPane>
+      <FloatLeftPane></FloatLeftPane>
+      <FloatRightPane></FloatRightPane>
       <ButtomPane></ButtomPane>
     </>
   );
