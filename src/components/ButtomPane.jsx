@@ -18,7 +18,7 @@ const ListTable = ({ list }) => {
   return <div className={styles.listTable}>
     {
       list.map(o => {
-        return <div className={styles.listItem}>
+        return <div key={o.title} className={styles.listItem}>
           <div className={styles.title}>
             {o.title}
           </div>
