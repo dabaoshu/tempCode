@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { eventBus } from "./Robot/utils";
+import { eventBus } from "../../Robot/utils";
 import styles from './index.module.less'
 import classnames from 'classnames'
 import keymaster from 'keymaster'

@@ -25,6 +25,9 @@ export default class Robot extends React.Component {
   initializeStats = () => {
     this.stats = new Stats();
     this.stats.showPanel(0);
+    this.stats.domElement.style.position="absolute"
+    this.stats.domElement.style.left="unset"
+    this.stats.domElement.style.right="0px"
     this.$robotView.appendChild(this.stats.domElement);
   }
 
@@ -121,9 +124,10 @@ export default class Robot extends React.Component {
     // 使用CSS将其定位在左上角
     this.renderer2.domElement.style.position = 'absolute';
     this.renderer2.domElement.style.top = '0px';
-    this.renderer2.domElement.style.height = '0px';
-    this.renderer2.domElement.style.height = '300px';
-    this.renderer2.domElement.style.width = '300px';
+    this.renderer2.domElement.style.height = '25%';
+    this.renderer2.domElement.style.width = '25%';
+    this.renderer2.domElement.style.maxHeight = '300px';
+    this.renderer2.domElement.style.maxWidth = '300px';
 
     const axesHelper = new THREE.AxesHelper(250);
     axesHelper.setColors('red', 'blue', 'yellow')
@@ -320,15 +324,17 @@ export default class Robot extends React.Component {
 
   addEventListener() {
     // 添加窗口变化监听器
-    this.$robotView.addEventListener("resize", () => {
+    window.addEventListener("resize", () => {
       // 更新修改相机比例
-      this.camera.aspect = window.innerWidth / window.innerHeight;
+      const width = this.$robotView.offsetWidth;
+      const height = this.$robotView.offsetHeight;
+      this.camera.aspect = width / height;
       // 更新摄像机的投影矩阵
       this.camera.updateProjectionMatrix();
       // 更新画布大小
       this.renderer.setSize(
-        window.innerWidth, // 宽度
-        window.innerHeight // 高度
+        width, // 宽度
+        height // 高度
       );
       // 更新画布像素比
       this.renderer.setPixelRatio(window.devicePixelRatio);
