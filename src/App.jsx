@@ -6,13 +6,13 @@ import FloatLeftPane from "./components/FloatLeftPane";
 function App() {
   return (
     <>
-      <div className="w-full h-full">
+      <div className="w-full h-full relative">
         <RobotView></RobotView>
       </div>
 
-      <FloatLeftPane></FloatLeftPane>
+      {/* <FloatLeftPane></FloatLeftPane>
       <FloatRightPane></FloatRightPane>
-      <ButtomPane></ButtomPane>
+      <ButtomPane></ButtomPane> */}
     </>
   );
 }

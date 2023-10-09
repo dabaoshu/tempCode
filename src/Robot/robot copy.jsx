@@ -6,7 +6,6 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
 import Stats from "three/examples/jsm/libs/stats.module";
 import Tween from "@tweenjs/tween.js";
 import { Caustics, Environment, EnvironmentMap, Water, WaterSimulation } from "./model";
-import { getPlant, getRock } from "./model/Environment";
 
 // Colors
 const black = new THREE.Color("black");
@@ -16,8 +15,8 @@ const water = new Water();
 const scene = new THREE.Scene();
 export default class Robot extends React.Component {
   $robotView;
-  async componentDidMount() {
-    await this.initializeThreeJS();
+  componentDidMount() {
+    this.initializeThreeJS();
     this.addEventListener()
   }
 
@@ -36,14 +35,25 @@ export default class Robot extends React.Component {
 
 
 
-  initializeThreeJS = async () => {
-    const width = this.$robotView.offsetWidth;
-    const height = this.$robotView.offsetHeight;
-    console.log(this.$robotView);
+  initializeThreeJS() {
+    const width = this.$robotView.innerWidth;
+    const height = this.$robotView.innerHeight;
     this.initializeStats()
     // 设置水深100米
     const waterPosition = new THREE.Vector3(0, 0, 10);
+    const waterSize = 1024;
 
+    // TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
+    const lightCamera = new THREE.OrthographicCamera(
+      -1.2,
+      1.2,
+      1.2,
+      -1.2,
+      0,
+      2
+    );
+    lightCamera.position.set(0, 0, 1.5);
+    lightCamera.lookAt(0, 0, 0);
     // this.animate();
     // Create Renderer
 
@@ -79,7 +89,10 @@ export default class Robot extends React.Component {
 
     // Environment
     const floorGeometry = new THREE.PlaneGeometry(10000, 10000, 1, 1);
-    console.log(floorGeometry);
+
+    console.log("floorGeometry", floorGeometry);
+    const objLoader = new OBJLoader();
+
     // Skybox
     const cubeTextureLoader = new THREE.CubeTextureLoader();
     /**
@@ -119,11 +132,9 @@ export default class Robot extends React.Component {
     this.$robotView.appendChild(this.renderer2.domElement);
 
     // 使用CSS将其定位在左上角
-    this.renderer2.domElement.style.position = 'absolute';
-    this.renderer2.domElement.style.top = '0px';
-    this.renderer2.domElement.style.height = '0px';
-    this.renderer2.domElement.style.height = '300px';
-    this.renderer2.domElement.style.width = '300px';
+    // this.renderer2.domElement.style.position = 'absolute';
+    this.renderer2.domElement.style.width = '1220px';
+    this.renderer2.domElement.style.height = '1220px';
 
     const axesHelper = new THREE.AxesHelper(250);
     axesHelper.setColors('red', 'blue', 'yellow')
@@ -185,11 +196,52 @@ export default class Robot extends React.Component {
 
 
     // 加载石头
-    const { rock1, rock2 } = await getRock()
-    const plant = await getPlant()
+    let rock1;
+    let rock2;
+    const rockLoaded = new Promise((resolve) => {
+      objLoader.load("assets/rock.obj", (rockGeometry) => {
+        rockGeometry = rockGeometry.children[0].geometry;
+        rockGeometry.computeVertexNormals();
 
+        rock1 = new THREE.BufferGeometry().copy(rockGeometry);
+        rock1.scale(0.05, 0.05, 0.02);
+        rock1.translate(0.2, 0, 0.1);
 
+        rock2 = new THREE.BufferGeometry().copy(rockGeometry);
+        rock2.scale(0.05, 0.05, 0.05);
+        rock2.translate(-0.5, 0.5, 0.2);
+        rock2.rotateZ(Math.PI / 2);
 
+        resolve();
+      });
+    });
+
+    // 加载植物
+    let plant;
+    const plantLoaded = new Promise((resolve) => {
+      objLoader.load("assets/plant.obj", (plantGeometry) => {
+        plantGeometry = plantGeometry.children[0].geometry;
+        plantGeometry.computeVertexNormals();
+
+        plant = plantGeometry;
+        plant.rotateX(Math.PI / 6);
+        plant.scale(0.03, 0.03, 0.03);
+        plant.translate(-0.5, 0.5, 0);
+
+        resolve();
+      });
+    });
+
+    const loaded = [
+      // waterSimulation.loaded,
+      // water.loaded,
+      this.environmentMap.loaded,
+      this.environment.loaded,
+      this.caustics.loaded,
+      // sharkLoaded,
+      rockLoaded,
+      plantLoaded,
+    ];
 
 
     function onMouseMove(event) {
@@ -197,7 +249,7 @@ export default class Robot extends React.Component {
       mouse.x = ((event.clientX - rect.left) * 2) / width - 1;
       mouse.y = (-(event.clientY - rect.top) * 2) / height + 1;
 
-      rayCaster.setFromCamera(mouse, this.camera);
+      rayCaster.setFromCamera(mouse, camera);
 
       const intersects = rayCaster.intersectObject(targetMesh);
 
@@ -211,20 +263,8 @@ export default class Robot extends React.Component {
         );
       }
     }
-
-
-    const loaded = [
-      // waterSimulation.loaded,
-      // water.loaded,
-      this.environmentMap.loaded,
-      this.environment.loaded,
-      this.caustics.loaded,
-      // sharkLoaded,
-    ];
-    Promise.all(loaded).then((res) => {
-      const [loadedModel] = res
-      console.log(res);
-      const envGeometries = [ rock1, rock2, plant];
+    Promise.all(loaded).then(() => {
+      const envGeometries = [floorGeometry, rock1, rock2, plant];
 
       this.environmentMap.setGeometries(envGeometries);
       this.environment.setGeometries(envGeometries);
@@ -315,7 +355,7 @@ export default class Robot extends React.Component {
     // ...
 
     // Dispose of Three.js objects to prevent memory leaks
-    // this.threeRenderer.dispose();
+    this.threeRenderer.dispose();
   }
 
   addEventListener() {
@@ -352,7 +392,7 @@ export default class Robot extends React.Component {
   render() {
     return (
       <div
-        className="w-full h-full relative"
+        className="w-full h-full"
         ref={(v) => (this.$robotView = v)}
         id="RobotView"
       >
