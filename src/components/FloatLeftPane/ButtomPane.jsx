@@ -1,18 +1,18 @@
 import React from 'react'
 import styles from './index.module.less'
 const list1 = [
-  { title: "X" },
-  { title: "y" },
-  { title: "z" },
-  { title: "rotx" },
-  { title: "roty" },
-  { title: "rotz" },
-  { title: "vx" },
-  { title: "vy" },
-  { title: "vz" },
-  { title: "wx" },
-  { title: "wy" },
-  { title: "wz" },
+  { title: "X" ,value:"42"},
+  { title: "y" ,value:"62"},
+  { title: "z" ,value:"85"},
+  { title: "rotx",value:"412" },
+  { title: "roty",value:"323" },
+  { title: "rotz",value:"242" },
+  { title: "vx" ,value:"62"},
+  { title: "vy" ,value:"44"},
+  { title: "vz" ,value:"12"},
+  { title: "wx" ,value:"13"},
+  { title: "wy",value:"02" },
+  { title: "wz",value:"33" },
 ]
 const ListTable = ({ list }) => {
   return <div className={styles.listTable}>
@@ -23,7 +23,7 @@ const ListTable = ({ list }) => {
             {o.title}
           </div>
           <div className={styles.val}>
-            
+          {o.value}
           </div>
         </div>
       })
