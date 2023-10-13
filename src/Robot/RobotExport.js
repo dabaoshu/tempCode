@@ -8,7 +8,7 @@ export class RobotExport {
     }
     running = undefined
     intervalId = undefined
-    startRun = (action) => {
+    startRun = (action, still = false) => {
         this.running = true
 
         const run = async () => {
@@ -62,7 +62,9 @@ export class RobotExport {
 
                 console.log("机器人的坐标系position:", position);
                 console.log("机器人的坐标系rotation:", this.rebootModel.rotation);
-                reTry()
+                if (still) {
+                    reTry()
+                }
             } catch (error) {
                 console.error("API request error:", error);
             }

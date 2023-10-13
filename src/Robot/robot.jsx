@@ -29,7 +29,7 @@ export default class Robot extends React.Component {
       switch (type) {
         case "start":
           action = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-          this.robotExport.startRun(action)
+          this.robotExport.startRun(action, true)
           break;
         case "up":
           action = [0.0, 0.0, 1500.0, 0.0, 0.0, 0.0];
@@ -143,8 +143,8 @@ export default class Robot extends React.Component {
     // 将渲染器的DOM元素添加到你的HTML页面中
     this.FirControls = new OrbitControls(this.robotCamera, this.sceneRenderer.domElement);
     // this.FirControls = new FirstPersonControls(this.robotCamera, this.robotViewRender.domElement);
-    this.FirControls.movementSpeed = 150;
-    this.FirControls.lookSpeed = 0.1;
+    // this.FirControls.movementSpeed = 150;
+    // this.FirControls.lookSpeed = 0.1;
     this.$robotView.appendChild(this.robotViewRender.domElement);
   }
 
@@ -378,7 +378,7 @@ export default class Robot extends React.Component {
     this.sceneRenderer.render(scene, this.sceneCamera);
 
     this.orbitcontrols.update();
-    // this.FirControls.update();
+    this.FirControls.update();
 
     this.stats.end();
 
