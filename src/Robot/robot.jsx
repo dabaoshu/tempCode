@@ -1,33 +1,103 @@
-import React, { createRef, useRef } from "react";
+import React from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader";
+import { OrbitControls, } from "three/examples/jsm/controls/OrbitControls";
+import { FirstPersonControls } from "three/examples/jsm/controls/FirstPersonControls";
 import Stats from "three/examples/jsm/libs/stats.module";
 import Tween from "@tweenjs/tween.js";
 import { Caustics, Environment, EnvironmentMap, Water, WaterSimulation } from "./model";
 import { getPlant, getRock } from "./model/Environment";
-
+import { loadFile, eventBus } from "./utils";
+import { getReboot } from "./model/reboot";
+import { RobotExport } from './RobotExport'
 // Colors
 const black = new THREE.Color("black");
 const white = new THREE.Color("white");
 
 const water = new Water();
 const scene = new THREE.Scene();
+const gltfLoader = new GLTFLoader();
 export default class Robot extends React.Component {
   $robotView;
   async componentDidMount() {
     await this.initializeThreeJS();
+
     this.addEventListener()
+    this.robotExport = new RobotExport(this.rebootModel)
+    const fn = async (type) => {
+      let action = [];
+      console.log("type:", type)
+      switch (type) {
+        case "start":
+          action = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "up":
+          action = [0.0, 0.0, 1500.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "down":
+          action = [0.0, 0.0, -1500.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "left":
+          action = [0.0, 1500.0, 0.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "right":
+          action = [0.0, -1500.0, 0.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "ahead":
+          action = [1500.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "behind":
+          action = [-1500.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "roll+":
+          action = [0.0, 0.0, 0.0, 800.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "roll-":
+          action = [0.0, 0.0, 0.0, -800.0, 0.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "pitch+":
+          action = [0.0, 0.0, 0.0, 0.0, 800.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "pitch-":
+          action = [0.0, 0.0, 0.0, 0.0, -800.0, 0.0];
+          this.robotExport.startRun(action)
+          break;
+        case "yaw+":
+          action = [0.0, 0.0, 0.0, 0.0, 0.0, 800.0];
+          this.robotExport.startRun(action)
+          break;
+        case "yaw-":
+          action = [0.0, 0.0, 0.0, 0.0, 0.0, -800.0];
+          this.robotExport.startRun(action)
+          break;
+        case "stop":
+          this.robotExport.stop()
+          break;
+        // 其他case...
+      }
+      console.log("action:", action)
+    };
+    eventBus.on("click1", fn);
   }
+
 
   /**stats */
   initializeStats = () => {
     this.stats = new Stats();
     this.stats.showPanel(0);
-    this.stats.domElement.style.position="absolute"
-    this.stats.domElement.style.left="unset"
-    this.stats.domElement.style.right="0px"
+    this.stats.domElement.style.position = "absolute"
+    this.stats.domElement.style.left = "unset"
+    this.stats.domElement.style.right = "0px"
     this.$robotView.appendChild(this.stats.domElement);
   }
 
@@ -37,12 +107,43 @@ export default class Robot extends React.Component {
 
   }
 
-
+  createRobotCamera = (rebootModelPosition) => {
+    // 创建一个新的相机（第一人称是摄像机）
+    this.robotCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 100);
+    this.robotCamera.position.copy(rebootModelPosition);
+    this.robotCamera.up.set(0, 0, 1)
+    // const lookAtPostion = this.robotCamera.position.clone()
+    // lookAtPostion.x = -lookAtPostion.x
+    // lookAtPostion.y = lookAtPostion.y + 10
+    this.robotCamera.position.y = this.robotCamera.position.y - 1
+    this.robotCamera.lookAt(rebootModelPosition.x, rebootModelPosition.y - 1, rebootModelPosition.z);
+    console.log(rebootModelPosition);
+    // this.robotCamera.lookAt(0,0,0)
+    console.log("robotCamera", this.robotCamera.position);
+    // console.log("lookAtPostion", lookAtPostion);
+    const cameraHelper = new THREE.CameraHelper(this.robotCamera)
+    // 辅助线加入 场景
+    scene.add(cameraHelper)
+    // 创建一个新的渲染器（第一人称的视角）
+    this.robotViewRender = new THREE.WebGLRenderer();
+    // 使用CSS将其定位在左上角
+    this.robotViewRender.domElement.style.position = 'absolute';
+    this.robotViewRender.domElement.style.top = '0px';
+    this.robotViewRender.domElement.style.height = '25%';
+    this.robotViewRender.domElement.style.width = '25%';
+    this.robotViewRender.domElement.style.maxHeight = '300px';
+    this.robotViewRender.domElement.style.maxWidth = '300px';
+    // 将渲染器的DOM元素添加到你的HTML页面中
+    this.FirControls = new FirstPersonControls(this.robotCamera, this.sceneRenderer.domElement);
+    this.FirControls = new FirstPersonControls(this.robotCamera, this.robotViewRender.domElement);
+    this.FirControls.movementSpeed = 150;
+    this.FirControls.lookSpeed = 0.1;
+    this.$robotView.appendChild(this.robotViewRender.domElement);
+  }
 
   initializeThreeJS = async () => {
     const width = this.$robotView.offsetWidth;
     const height = this.$robotView.offsetHeight;
-    console.log(this.$robotView);
     this.initializeStats()
     // 设置水深100米
     const waterPosition = new THREE.Vector3(0, 0, 10);
@@ -50,21 +151,24 @@ export default class Robot extends React.Component {
     // this.animate();
     // Create Renderer
 
-    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-    this.camera.position.set(6, 2, 20);
-    this.camera.up.set(0, 0, 1);
-    scene.add(this.camera);
+    this.sceneCamera = new THREE.PerspectiveCamera(75, width / height, 1, 1000);
+    this.sceneCamera.position.set(6, 2, 20);
+    this.sceneCamera.up.set(0, 0, 1);
+    // const cameraHelper2 = new THREE.CameraHelper(this.sceneCamera)
+    // // 辅助线加入 场景
+    // scene.add(cameraHelper2)
+    scene.add(this.sceneCamera);
 
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.sceneRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 
-    this.renderer.setSize(width, height);
-    this.renderer.autoClear = false;
+    this.sceneRenderer.setSize(width, height);
+    this.sceneRenderer.autoClear = false;
 
-    const canvas = this.renderer.domElement;
+    const canvas = this.sceneRenderer.domElement;
     this.$robotView.appendChild(canvas);
     // Create mouse Controls
-    this.controls = new OrbitControls(this.camera, canvas);
+    this.orbitcontrols = new OrbitControls(this.sceneCamera, canvas);
     // Target for computing the water refraction
     this.temporaryRenderTarget = new THREE.WebGLRenderTarget(width, height);
 
@@ -107,27 +211,7 @@ export default class Robot extends React.Component {
     this.environment = new Environment();
     this.caustics = new Caustics();
 
-    // 创建一个新的相机（第一人称是摄像机）
-    this.camera2 = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.camera2.position.set(6, 2, 20);
 
-    // 创建一个新的渲染器（第一人称的视角）
-    this.renderer2 = new THREE.WebGLRenderer();
-    this.renderer2.setSize(window.innerWidth / 4, window.innerHeight / 4); // 设置渲染器的大小
-
-
-    this.FirControls = new OrbitControls(this.camera2, canvas);
-
-    // 将渲染器的DOM元素添加到你的HTML页面中
-    this.$robotView.appendChild(this.renderer2.domElement);
-
-    // 使用CSS将其定位在左上角
-    this.renderer2.domElement.style.position = 'absolute';
-    this.renderer2.domElement.style.top = '0px';
-    this.renderer2.domElement.style.height = '25%';
-    this.renderer2.domElement.style.width = '25%';
-    this.renderer2.domElement.style.maxHeight = '300px';
-    this.renderer2.domElement.style.maxWidth = '300px';
 
     const axesHelper = new THREE.AxesHelper(250);
     axesHelper.setColors('red', 'blue', 'yellow')
@@ -135,79 +219,53 @@ export default class Robot extends React.Component {
 
     const light1 = new THREE.DirectionalLight(0xffffff, 1); // 设置光源颜色和强度
     light1.position.set(1, 1, 1); // 设置光源位置
+    // light1.target.position.set(-5, 0, 0)
     scene.add(light1);
+    // scene.add(light1.target)
 
-    const loader = new GLTFLoader();
     // 加载船体
-    loader.load("models/chuang.glb", function (gltf1) {
+    gltfLoader.load("models/chuang.glb", function (gltf1) {
       const chuangModel = gltf1.scene;
       // 将模型缩小为原始大小的一半
       chuangModel.scale.set(0.001, 0.001, 0.001);
       scene.add(chuangModel);
     });
 
-    let rebootModel;
-    let rebootModelPosition;
+    // let rebootModel;
     // 加载水下机器人
-    loader.load("models/reboot.glb", async (gltf2) => {
 
-      // const response = fetch("http://localhost:5000/api/rov/state", {
-      //     method: "GET",
-      //     headers: {
-      //         "Content-Type": "application/json"
-      //     }
-      // });
-      // console.log(response)
-      // console.log("获取初始状态:", data)
-      // const [x, y, z, rotationX, rotationY, rotationZ] = data.state_list || []
-      rebootModel = gltf2.scene;
-      // 将模型缩小为原始大小的一半
-      rebootModel.scale.set(0.3, 0.3, 0.3);
-      rebootModel.position.set(0, 0, 20);
-      // 将模型绕 x 轴旋转 180 度
-      rebootModel.rotation.x = Math.PI;
-      // rebootModel.rotation.x = rotationX;
-      // rebootModel.rotation.y = Math.PI/2;
-      // rebootModel.rotation.y = rotationZ;
-      // 将摄像头位置设置为与rebootModel相同
-      rebootModelPosition = rebootModel.position;
-      console.log(this.camera);
-      this.camera.position.copy(rebootModelPosition);
-      this.camera.position.x += 2;
-      this.camera.position.y += 2;
-      this.camera.position.z += 2;
-      // 将摄像头朝向设置为rebootModel的位置
-      this.camera.lookAt(rebootModel.position);
-      // 创建一个AxesHelper对象
-      var rebootModelAxesHelper = new THREE.AxesHelper(5);
+    this.rebootModel = await getReboot()
+    const rebootModelPosition = this.rebootModel.position;
+    this.sceneCamera.position.copy(rebootModelPosition);
+    const f = 10
+    this.sceneCamera.position.x += f;
+    this.sceneCamera.position.y += f;
+    this.sceneCamera.position.z += f;
+    // console.log(this.sceneCamera.position);
 
-      // 将AxesHelper对象添加到模型的场景中
-      rebootModel.add(rebootModelAxesHelper);
-      scene.add(rebootModel);
-    });
+    this.createRobotCamera(rebootModelPosition)
 
 
+    // 将AxesHelper对象添加到模型的场景中
+    scene.add(this.rebootModel);
 
     // 加载石头
     const { rock1, rock2 } = await getRock()
     const plant = await getPlant()
 
 
-
-
-
-    function onMouseMove(event) {
+    const onMouseMove = (event) => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) * 2) / width - 1;
       mouse.y = (-(event.clientY - rect.top) * 2) / height + 1;
 
-      rayCaster.setFromCamera(mouse, this.camera);
+      rayCaster.setFromCamera(mouse, this.sceneCamera);
 
       const intersects = rayCaster.intersectObject(targetMesh);
 
       for (let intersect of intersects) {
-        waterSimulation.addDrop(
-          renderer,
+        this.waterSimulation.addDrop(
+          this.sceneRenderer,
           intersect.point.x,
           intersect.point.y,
           0.03,
@@ -226,9 +284,7 @@ export default class Robot extends React.Component {
       // sharkLoaded,
     ];
     Promise.all(loaded).then((res) => {
-      const [loadedModel] = res
-      console.log(res);
-      const envGeometries = [ rock1, rock2, plant];
+      const envGeometries = [rock1, rock2, plant];
 
       this.environmentMap.setGeometries(envGeometries);
       this.environment.setGeometries(envGeometries);
@@ -239,10 +295,10 @@ export default class Robot extends React.Component {
       this.caustics.setDeltaEnvTexture(1 / this.environmentMap.size);
 
       canvas.addEventListener("mousemove", { handleEvent: onMouseMove });
-
+      // console.log(this.waterSimulation);
       for (var i = 0; i < 5; i++) {
         this.waterSimulation.addDrop(
-          this.renderer,
+          this.sceneRenderer,
           Math.random() * 2 - 1,
           Math.random() * 2 - 1,
           0.03,
@@ -260,17 +316,17 @@ export default class Robot extends React.Component {
 
     // Update the water
     if (this.clock.getElapsedTime() > 0.032) {
-      this.waterSimulation.stepSimulation(this.renderer);
+      this.waterSimulation.stepSimulation(this.sceneRenderer);
 
       const waterTexture = this.waterSimulation.target.texture;
 
       water.setHeightTexture(waterTexture);
 
-      this.environmentMap.render(this.renderer);
+      this.environmentMap.render(this.sceneRenderer);
       const environmentMapTexture = this.environmentMap.target.texture;
 
       this.caustics.setTextures(waterTexture, environmentMapTexture);
-      this.caustics.render(this.renderer);
+      this.caustics.render(this.sceneRenderer);
       const causticsTexture = this.caustics.target.texture;
 
       this.environment.updateCaustics(causticsTexture);
@@ -286,30 +342,30 @@ export default class Robot extends React.Component {
     // camera.position.z += 2;
 
     // Render everything but the refractive water
-    this.renderer.setRenderTarget(this.temporaryRenderTarget);
-    this.renderer.setClearColor(white, 1);
-    this.renderer.clear();
+    this.sceneRenderer.setRenderTarget(this.temporaryRenderTarget);
+    this.sceneRenderer.setClearColor(white, 1);
+    this.sceneRenderer.clear();
 
     water.mesh.visible = false;
-    this.renderer.render(scene, this.camera);
+    this.sceneRenderer.render(scene, this.sceneCamera);
 
     water.setEnvMapTexture(this.temporaryRenderTarget.texture);
 
     // Then render the final scene with the refractive water
-    this.renderer.setRenderTarget(null);
-    this.renderer.setClearColor(white, 1);
-    this.renderer.clear();
+    this.sceneRenderer.setRenderTarget(null);
+    this.sceneRenderer.setClearColor(white, 1);
+    this.sceneRenderer.clear();
 
     water.mesh.visible = true;
-    this.renderer.render(scene, this.camera);
+    this.sceneRenderer.render(scene, this.sceneCamera);
 
-    this.controls.update();
-    this.FirControls.update();
+    this.orbitcontrols.update();
+    // this.FirControls.update();
 
     this.stats.end();
 
 
-    this.renderer2.render(scene, this.camera2);
+    this.robotViewRender.render(scene, this.robotCamera);
 
     window.requestAnimationFrame(this.animate);
   }
@@ -328,16 +384,16 @@ export default class Robot extends React.Component {
       // 更新修改相机比例
       const width = this.$robotView.offsetWidth;
       const height = this.$robotView.offsetHeight;
-      this.camera.aspect = width / height;
+      this.sceneCamera.aspect = width / height;
       // 更新摄像机的投影矩阵
-      this.camera.updateProjectionMatrix();
+      this.sceneCamera.updateProjectionMatrix();
       // 更新画布大小
-      this.renderer.setSize(
+      this.sceneRenderer.setSize(
         width, // 宽度
         height // 高度
       );
       // 更新画布像素比
-      this.renderer.setPixelRatio(window.devicePixelRatio);
+      this.sceneRenderer.setPixelRatio(window.devicePixelRatio);
     });
 
     // 监听鼠标双击事件
@@ -351,7 +407,7 @@ export default class Robot extends React.Component {
         return;
       }
       // 请求画布全屏
-      this.renderer.domElement.requestFullscreen();
+      this.sceneRenderer.domElement.requestFullscreen();
     });
   }
 

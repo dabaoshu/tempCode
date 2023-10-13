@@ -1,6 +1,6 @@
 import React from "react";
 import FloatRightPane from "./components/FloatPane";
-import ButtomPane from "./components/ButtomPane";
+import ButtomPane from "./components/FloatLeftPane/ButtomPane";
 import RobotView from "./Robot/robot";
 import FloatLeftPane from "./components/FloatLeftPane";
 import styles from "./index.module.less";
@@ -16,14 +16,16 @@ function App() {
       >
         <div>
           <FloatLeftPane></FloatLeftPane>
+
         </div>
         <div className={`${styles.RobotViewBox} max-w-screen-xl`}>
           <RobotView></RobotView>
         </div>
         <div>
           <FloatRightPane></FloatRightPane>
+
+
         </div>
-        <ButtomPane></ButtomPane>
       </div>
     </div>
   );

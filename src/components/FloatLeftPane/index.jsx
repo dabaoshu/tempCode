@@ -3,6 +3,7 @@ import styles from "./index.module.less";
 import * as echarts from "echarts";
 import AutoChart from "../chart";
 import classnames from "classnames";
+import ButtomPane from "./ButtomPane";
 
 const PositionChart = () => {
   return (
@@ -127,6 +128,8 @@ export default function FloatLeftPane() {
     <div className={styles.FloatLeftPane}>
       <PositionChart></PositionChart>
       <PostureChart></PostureChart>
+      <ButtomPane></ButtomPane>
+
     </div>
   );
 }
