@@ -21,9 +21,8 @@ export default class Robot extends React.Component {
   $robotView;
   async componentDidMount() {
     await this.initializeThreeJS();
-
     this.addEventListener()
-    this.robotExport = new RobotExport(this.rebootModel)
+    this.robotExport = new RobotExport(this.rebootModel, this.saveDataCb)
     const fn = async (type) => {
       let action = [];
       console.log("type:", type)
@@ -90,6 +89,10 @@ export default class Robot extends React.Component {
     eventBus.on("click1", fn);
   }
 
+  saveDataCb = (position) => {
+    const { pushPosition } = this.props
+    pushPosition(position)
+  }
 
   /**stats */
   initializeStats = () => {
@@ -109,21 +112,23 @@ export default class Robot extends React.Component {
 
   createRobotCamera = (rebootModelPosition) => {
     // 创建一个新的相机（第一人称是摄像机）
-    this.robotCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 100);
-    this.robotCamera.position.copy(rebootModelPosition);
-    this.robotCamera.up.set(0, 0, 1)
-    // const lookAtPostion = this.robotCamera.position.clone()
-    // lookAtPostion.x = -lookAtPostion.x
-    // lookAtPostion.y = lookAtPostion.y + 10
-    this.robotCamera.position.y = this.robotCamera.position.y - 1
-    this.robotCamera.lookAt(rebootModelPosition.x, rebootModelPosition.y - 1, rebootModelPosition.z);
-    console.log(rebootModelPosition);
-    // this.robotCamera.lookAt(0,0,0)
-    console.log("robotCamera", this.robotCamera.position);
-    // console.log("lookAtPostion", lookAtPostion);
-    const cameraHelper = new THREE.CameraHelper(this.robotCamera)
-    // 辅助线加入 场景
-    scene.add(cameraHelper)
+    this.robotCamera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    this.robotCamera.position.set(6, 2, 20);
+    // this.robotCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 100);
+    // this.robotCamera.position.copy(rebootModelPosition);
+    // this.robotCamera.up.set(0, 0, 1)
+    // // const lookAtPostion = this.robotCamera.position.clone()
+    // // lookAtPostion.x = -lookAtPostion.x
+    // // lookAtPostion.y = lookAtPostion.y + 10
+    // this.robotCamera.position.y = this.robotCamera.position.y - 1
+    // this.robotCamera.lookAt(rebootModelPosition.x, rebootModelPosition.y - 1, rebootModelPosition.z);
+    // console.log(rebootModelPosition);
+    // // this.robotCamera.lookAt(0,0,0)
+    // console.log("robotCamera", this.robotCamera.position);
+    // // console.log("lookAtPostion", lookAtPostion);
+    // const cameraHelper = new THREE.CameraHelper(this.robotCamera)
+    // // 辅助线加入 场景
+    // scene.add(cameraHelper)
     // 创建一个新的渲染器（第一人称的视角）
     this.robotViewRender = new THREE.WebGLRenderer();
     // 使用CSS将其定位在左上角
@@ -131,11 +136,13 @@ export default class Robot extends React.Component {
     this.robotViewRender.domElement.style.top = '0px';
     this.robotViewRender.domElement.style.height = '25%';
     this.robotViewRender.domElement.style.width = '25%';
+    this.robotViewRender.domElement.style.minHeight = '100px';
     this.robotViewRender.domElement.style.maxHeight = '300px';
+    this.robotViewRender.domElement.style.minWidth = '300px';
     this.robotViewRender.domElement.style.maxWidth = '300px';
     // 将渲染器的DOM元素添加到你的HTML页面中
-    this.FirControls = new FirstPersonControls(this.robotCamera, this.sceneRenderer.domElement);
-    this.FirControls = new FirstPersonControls(this.robotCamera, this.robotViewRender.domElement);
+    this.FirControls = new OrbitControls(this.robotCamera, this.sceneRenderer.domElement);
+    // this.FirControls = new FirstPersonControls(this.robotCamera, this.robotViewRender.domElement);
     this.FirControls.movementSpeed = 150;
     this.FirControls.lookSpeed = 0.1;
     this.$robotView.appendChild(this.robotViewRender.domElement);
@@ -236,6 +243,17 @@ export default class Robot extends React.Component {
 
     this.rebootModel = await getReboot()
     const rebootModelPosition = this.rebootModel.position;
+    const { initPosition } = this.props
+    let resetX = this.rebootModel.position.x
+    let resetY = this.rebootModel.position.y
+    let resetZ = this.rebootModel.position.z
+    let resetRotX = this.rebootModel.rotation.x
+    let resetRotY = this.rebootModel.rotation.y
+    let resetRotZ = this.rebootModel.rotation.z
+    initPosition({
+      resetX, resetY, resetZ, resetRotX, resetRotY, resetRotZ,
+      time: Date.now()
+    })
     this.sceneCamera.position.copy(rebootModelPosition);
     const f = 10
     this.sceneCamera.position.x += f;

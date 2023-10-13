@@ -2,6 +2,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import 'tailwindcss/tailwind.css';
+import { PositionStoreProvider } from './context';
 const root = createRoot(document.getElementById('app'))
-console.log(root);
-root.render(<App />);
+root.render(
+  <PositionStoreProvider>
+    <App />
+  </PositionStoreProvider>
+);

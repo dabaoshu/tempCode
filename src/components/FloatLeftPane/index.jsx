@@ -1,11 +1,17 @@
-import React from "react";
+import React, { useMemo } from "react";
 import styles from "./index.module.less";
 import * as echarts from "echarts";
 import AutoChart from "../chart";
 import classnames from "classnames";
 import ButtomPane from "./ButtomPane";
 
-const PositionChart = () => {
+const PositionChart = ({ list }) => {
+  // const { Xdata } = useMemo(() => {
+  //   const xAxis = list.map(o => time)
+  //   return {
+  //     Xdata
+  //   }
+  // }, [list])
   return (
     <div className={classnames(styles.chart, styles.PositionChart)}>
       <AutoChart
@@ -102,7 +108,7 @@ const PostureChart = () => {
               name: "rotX",
               type: "line",
               stack: "Total",
-              data: [12, 13, 10, 13, 9, 23, 21],
+              data: [12, 13, 10, 13, 9, 23, 21, 66],
             },
             {
               name: "rotY",

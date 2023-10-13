@@ -7,7 +7,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     },
-    extensions: ['.js', '.jsx', '.json'],
+    extensions: [".ts",".tsx",'.js', '.jsx', '.json'],
   },
   css: {
     postcss: {

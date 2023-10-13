@@ -9,7 +9,7 @@ export const getReboot = async () => {
   const Geometry = await gltfLoader.loadAsync("models/reboot.glb")
   const rebootModel = Geometry.scene;
   rebootModel.scale.set(0.3, 0.3, 0.3);
-  rebootModel.position.set(0, 0, 2);
+  rebootModel.position.set(0, 0, 30);
   // 将模型绕 x 轴旋转 180 度
   rebootModel.rotation.x = Math.PI;
   // rebootModel.rotation.x = rotationX;
