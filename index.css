@@ -1,8 +1,13 @@
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
-html,body {
-    overflow: hidden;
-    /* background-color: aqua; */
+html,
+body {
+  overflow: hidden;
+  /* background-color: aqua; */
+}
+
+.blue-box-shadow {
+  box-shadow: inset -5px -5px 10px #558fb1, inset 5px 5px 10px #73c1ef;
 }

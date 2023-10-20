@@ -80,7 +80,7 @@ export default function FloatPane() {
 
 
   return (
-    <div className={styles.FloatPane}>
+    <div className={classnames(styles.FloatPane, 'blue-box-shadow')}>
       {/* <div className="bg-white">
         <nav className="flex flex-col sm:flex-row">
           <button

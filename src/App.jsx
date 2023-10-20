@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import './utils/time'
 import FloatRightPane from "./components/FloatPane";
 import ButtomPane from "./components/FloatLeftPane/ButtomPane";
 import RobotView from "./Robot/robot";
@@ -7,6 +8,7 @@ import FloatLeftPane from "./components/FloatLeftPane";
 import styles from "./index.module.less";
 import classnames from "classnames";
 import { usePositionStore } from "./context";
+
 
 
 function App() {
@@ -19,11 +21,12 @@ function App() {
     })
   }
   const initPosition = (position) => {
+    const { time } = position
     setStore({
-      list: [position]
+      list: [position],
+      baseTime: time
     })
   }
-  console.log(store.list);
   return (
     <div className="w-full h-full relative">
       <div

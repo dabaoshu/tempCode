@@ -1,19 +1,7 @@
 import React from 'react'
 import styles from './index.module.less'
-const list1 = [
-  { title: "X" ,value:"42"},
-  { title: "y" ,value:"62"},
-  { title: "z" ,value:"85"},
-  { title: "rotx",value:"412" },
-  { title: "roty",value:"323" },
-  { title: "rotz",value:"242" },
-  { title: "vx" ,value:"62"},
-  { title: "vy" ,value:"44"},
-  { title: "vz" ,value:"12"},
-  { title: "wx" ,value:"13"},
-  { title: "wy",value:"02" },
-  { title: "wz",value:"33" },
-]
+import classnames from 'classnames'
+
 const ListTable = ({ list }) => {
   return <div className={styles.listTable}>
     {
@@ -23,7 +11,7 @@ const ListTable = ({ list }) => {
             {o.title}
           </div>
           <div className={styles.val}>
-          {o.value}
+            {o.value}
           </div>
         </div>
       })
@@ -33,10 +21,27 @@ const ListTable = ({ list }) => {
 
 }
 
-export default function ButtomPane() {
+export default function ButtomPane({ list }) {
+  const lastItem = list[list.length - 1] || {}
+  const list1 = [
+    { title: "X", value: lastItem.resetX },
+    { title: "y", value: lastItem.resetY },
+    { title: "z", value: lastItem.resetZ },
+    { title: "rotx", value: lastItem.resetRotX },
+    { title: "roty", value: lastItem.resetRotY },
+    { title: "rotz", value: lastItem.resetRotZ },
+    { title: "vx", value: "62" },
+    { title: "vy", value: "44" },
+    { title: "vz", value: "12" },
+    { title: "wx", value: "13" },
+    { title: "wy", value: "02" },
+    { title: "wz", value: "33" },
+  ]
   return (
-    <div className={styles.ButtomPane}>
-      实时状态
+    <div className={classnames(styles.ButtomPane, 'blue-box-shadow')}>
+      <div className={styles.header}>
+        实时状态
+      </div>
       <ListTable list={list1}></ListTable>
     </div>
   )
