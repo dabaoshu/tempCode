@@ -5,19 +5,20 @@ const gltfLoader = new GLTFLoader();
 
 
 
-export const getReboot = async () => {
+export const createReboot = async () => {
+  var group = new THREE.Group();
   const Geometry = await gltfLoader.loadAsync("models/reboot.glb")
-  const rebootModel = Geometry.scene;
-  rebootModel.scale.set(0.3, 0.3, 0.3);
-  rebootModel.position.set(0, 0, 30);
+  const rebotModel = Geometry.scene;
+  rebotModel.scale.set(0.3, 0.3, 0.3);
   // 将模型绕 x 轴旋转 180 度
-  rebootModel.rotation.x = Math.PI;
-  // rebootModel.rotation.x = rotationX;
-  // rebootModel.rotation.y = Math.PI/2;
-  // rebootModel.rotation.y = rotationZ;
+  rebotModel.rotation.x = Math.PI;
   var rebootModelAxesHelper = new THREE.AxesHelper(10);
   rebootModelAxesHelper.setColors('red', 'blue', 'yellow')
   // 将AxesHelper对象添加到模型的场景中
-  rebootModel.add(rebootModelAxesHelper);
-  return rebootModel
+  rebotModel.add(rebootModelAxesHelper);
+  group.add(rebotModel)
+  group.position.set(0, 0, 30);
+
+  return group
 }
+
