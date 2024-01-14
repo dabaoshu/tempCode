@@ -31,10 +31,10 @@ export class RobotExport {
                 // }
                 // const data = await response.json();
                 let rov = new ROV();
-                rov.step
+                
                 //调用JS中的step函数
                 // 调用rov_dynamic.js中的step方法
-                const data = step(action);
+                const data = rov.step(action);
                 console.log('data', data);
                 // 解构final_state数组中的位置和角度信息
                 const [x, y, z, rotationX, rotationY, rotationZ] =
