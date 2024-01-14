@@ -24,15 +24,17 @@ const white = new THREE.Color('white');
 
 // 添加水下机器人探照灯，默认是白色光源
 // 创建聚光灯
-const spotlight = new THREE.SpotLight(0xffffff, 4 , 100);
+const spotlight = new THREE.SpotLight(0xffffff, 4, 100);
+spotlight.angle = Math.PI / 8; // 缩小光斑角度
+spotlight.penumbra = 0.5; // 轻微软化边缘
 
 const shipWallLoader = new THREE.TextureLoader();
 
 // 加载船壁纹理
-const shipWallTexture = shipWallLoader.load('shipWallTexture.jpg');
+const shipWallTexture = shipWallLoader.load('assets/shipWallTexture.jpg');
 
 //加载图片材质
-const shipWallMaterial = new THREE.MeshBasicMaterial({map: shipWallTexture});
+const shipWallMaterial = new THREE.MeshPhongMaterial({map: shipWallTexture});
 // const material = new THREE.MeshBasicMaterial();
 const shipWallGeometry = new THREE.BoxGeometry(35, 5, 25);
 // 创建一个立方体几何体
@@ -255,7 +257,7 @@ export default class Robot extends React.Component {
         pmremGenerator.compileEquirectangularShader();
 
 // 加载HDR图像
-    rgbeLoader.load('pic02.hdr', function (texture) {
+    rgbeLoader.load('assets/pic02.hdr', function (texture) {
       const envMap = pmremGenerator.fromEquirectangular(texture).texture;
       scene.environment = envMap;
       scene.background = texture;

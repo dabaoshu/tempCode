@@ -1,5 +1,6 @@
 import Tween from '@tweenjs/tween.js';
 import * as THREE from "three";
+import {ROV} from '../utils/rov_dynamic';
 
 export class RobotExport {
     constructor({ rebotModel, robotCamera }, saveDataCb) {
@@ -15,20 +16,25 @@ export class RobotExport {
         const run = async () => {
             try {
                 // 调用API接口
-                const response = await fetch('http://localhost:5000/api/rov/step', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        n_step: 160,
-                        action: action,
-                    }),
-                });
-                if (!response.ok) {
-                    throw new Error('API request failed');
-                }
-                const data = await response.json();
+                // const response = await fetch('http://localhost:5000/api/rov/step', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify({
+                //         n_step: 160,
+                //         action: action,
+                //     }),
+                // });
+                // if (!response.ok) {
+                //     throw new Error('API request failed');
+                // }
+                // const data = await response.json();
+                let rov = new ROV();
+                rov.step
+                //调用JS中的step函数
+                // 调用rov_dynamic.js中的step方法
+                const data = step(action);
                 console.log('data', data);
                 // 解构final_state数组中的位置和角度信息
                 const [x, y, z, rotationX, rotationY, rotationZ] =
