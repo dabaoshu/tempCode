@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import './utils/time'
+import "./utils/time";
 import FloatRightPane from "./components/FloatPane";
 import ButtomPane from "./components/FloatLeftPane/ButtomPane";
 import RobotView from "./Robot/robot";
@@ -9,24 +9,22 @@ import styles from "./index.module.less";
 import classnames from "classnames";
 import { usePositionStore } from "./context";
 
-
-
 function App() {
-  const { store, setStore } = usePositionStore()
+  const { store, setStore } = usePositionStore();
   const pushPosition = (position) => {
-    const { list } = store
-    const newList = [...list, position]
+    const { list } = store;
+    const newList = [...list, position];
     setStore({
-      list: newList
-    })
-  }
+      list: newList,
+    });
+  };
   const initPosition = (position) => {
-    const { time } = position
+    const { time } = position;
     setStore({
       list: [position],
-      baseTime: time
-    })
-  }
+      baseTime: time,
+    });
+  };
   return (
     <div className="w-full h-full relative">
       <div
@@ -37,10 +35,10 @@ function App() {
       >
         <div>
           <FloatLeftPane></FloatLeftPane>
-
         </div>
+        {/* <div className={`${styles.RobotViewBox}`}> */}
         <div className={`${styles.RobotViewBox} max-w-screen-xl`}>
-          <RobotView pushPosition={pushPosition} initPosition={initPosition}></RobotView>
+          <RobotView pushPosition={pushPosition} initPosition={initPosition} />
         </div>
         <div>
           <FloatRightPane></FloatRightPane>

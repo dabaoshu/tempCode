@@ -13,20 +13,13 @@ import {
     Water,
     WaterSimulation,
 } from './model';
-import {getPlant, getRock} from './model/Environment';
+import {getPlant, getRandomRockPositions, getRock} from './model/Environment';
 import {loadFile, eventBus} from './utils';
-import {createReboot} from './model/reboot';
+import {createReboot, Robot2} from './model/reboot';
 import {RobotExport} from './RobotExport';
 // Colors
 const black = new THREE.Color('black');
 const white = new THREE.Color('white');
-
-
-// 添加水下机器人探照灯，默认是白色光源
-// 创建聚光灯
-const spotlight = new THREE.SpotLight(0xffffff, 4, 100);
-spotlight.angle = Math.PI / 8; // 缩小光斑角度
-spotlight.penumbra = 0.5; // 轻微软化边缘
 
 const shipWallLoader = new THREE.TextureLoader();
 
@@ -41,7 +34,7 @@ const shipWallGeometry = new THREE.BoxGeometry(35, 5, 25);
 const shipWall = new THREE.Mesh(shipWallGeometry, shipWallMaterial);
 //将船壁设置为暗色调
 shipWallMaterial.color = new THREE.Color(0x333333);
-shipWall.position.y = 15;
+shipWall.position.y = -15;
 
 const water = new Water();
 const scene = new THREE.Scene();
@@ -55,7 +48,6 @@ export default class Robot extends React.Component {
         this.robotExport = new RobotExport(
             {
                 rebotModel: this.rebotModel,
-                robotCamera: this.robotCamera,
             },
             this.saveDataCb
         );
@@ -143,19 +135,7 @@ export default class Robot extends React.Component {
     createRendereCameraHelperr = () => {
     };
 
-    createRobotCamera = () => {
-        // const k = 1; //canvas画布宽高比
-        // const s = 0.5;//控制left, right, top, bottom范围大小
-        // this.robotCamera = new THREE.OrthographicCamera(-s * k, s * k, s, -s, 0.01, 100);
-        this.robotCamera = new THREE.PerspectiveCamera(45, 1, 0.35, 100);
-        //
-        this.robotCamera.up.set(0, 1, 0);
-
-        // 将AxesHelper对象添加到模型的场景中
-        // const cameraHelper = new THREE.CameraHelper(this.robotCamera);
-        // // 辅助线加入 场景
-        // scene.add(cameraHelper);
-
+    createRobotViewRender = () => {
         // 创建一个新的渲染器（第一人称的视角）
         this.robotViewRender = new THREE.WebGLRenderer();
         // 使用CSS将其定位在左上角
@@ -167,16 +147,37 @@ export default class Robot extends React.Component {
         this.robotViewRender.domElement.style.maxHeight = '300px';
         this.robotViewRender.domElement.style.minWidth = '300px';
         this.robotViewRender.domElement.style.maxWidth = '300px';
-        // 将渲染器的DOM元素添加到你的HTML页面中
-        // this.FirControls = new OrbitControls(this.robotCamera, this.robotViewRender.domElement);
-        // this.FirControls.movementSpeed = 150;
-        // this.FirControls.lookSpeed = 0.1;
+
+        // 将AxesHelper对象添加到模型的场景中
+        // const cameraHelper = new THREE.CameraHelper(this.robotCamera);
+        // 辅助线加入 场景
+        // scene.add(cameraHelper);
         this.$robotView.appendChild(this.robotViewRender.domElement);
-        const lookAtPostion = this.robotCamera.position.clone();
-        lookAtPostion.y = lookAtPostion.y - 1;
-        this.robotCamera.lookAt(lookAtPostion);
-        this.rebotModel.add(this.robotCamera)
+        // this.rebotModel.add(this.robot.camera)
     };
+
+    getEnvGeometries = async () => {
+        const envGeometries = []
+        const [rockGeometry, plantGeometry] = await Promise.all([getRock(), getPlant()]);
+        // 随机生成石头和草
+        for (let position of getRandomRockPositions()) {
+            const rock = new THREE.BufferGeometry().copy(rockGeometry);
+            const factor = (Math.random() * 10).toFixed(2) * 0.01
+            rock.scale(factor, factor, factor);
+            rock.translate(position.x, position.y, position.z - 12);
+            // group.add(rock);
+            envGeometries.push(rock);
+        }
+        for (let position of getRandomRockPositions()) {
+            const plant = new THREE.BufferGeometry().copy(plantGeometry);
+            const factor = (Math.random() * 10).toFixed(2) * 0.01
+            plant.scale(factor, factor, factor);
+            plant.translate(position.x, position.y, position.z - 12);
+            // group.add(plant);
+            envGeometries.push(plant);
+        }
+        return envGeometries
+    }
 
 
     initializeThreeJS = async () => {
@@ -185,8 +186,6 @@ export default class Robot extends React.Component {
         this.initializeStats();
         // 设置水深100米
         const waterPosition = new THREE.Vector3(0, 0, 10);
-        this.group = new THREE.Group();
-
         // this.animate();
         // Create Renderer
 
@@ -276,9 +275,9 @@ export default class Robot extends React.Component {
         this.environment = new Environment();
         this.caustics = new Caustics();
 
-        const axesHelper = new THREE.AxesHelper(250);
-        axesHelper.setColors('red', 'blue', 'yellow');
-        scene.add(axesHelper); //网格模型添加到场景中
+        // const axesHelper = new THREE.AxesHelper(250);
+        // axesHelper.setColors('red', 'blue', 'yellow');
+        // scene.add(axesHelper); //网格模型添加到场景中
 
         // const light1 = new THREE.DirectionalLight(0xffffff, 0.1); // 设置光源颜色和强度
         // light1.position.set(1, 1, 1); // 设置光源位置
@@ -301,16 +300,14 @@ export default class Robot extends React.Component {
 // 创建环境光
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 设置环境光颜色和强度
         scene.add(ambientLight); // 将环境光添加到场景中
-        this.rebotModel = await createReboot();
+        // this.rebotModel = await createReboot();
+        this.robot =  new Robot2();
+
+        await this.robot.loadModel()
+        this.rebotModel=this.robot.getGroup()
+
         const rebotModelPosition = this.rebotModel.position;
         const {initPosition} = this.props;
-        //给水下机器人的正前方设置探照灯
-        spotlight.position.set(this.rebotModel.position.x, this.rebotModel.position.y, this.rebotModel.position.z + 1);
-        //将探照灯添加到场景中
-        // 将聚光灯添加到场景中
-        scene.add(spotlight);
-        scene.add(spotlight.target);
-
         initPosition({
             resetX: this.rebotModel.position.x,
             resetY: this.rebotModel.position.y,
@@ -327,14 +324,13 @@ export default class Robot extends React.Component {
         this.sceneCamera.position.z += f;
         // console.log(this.sceneCamera.position);
 
-        this.createRobotCamera();
+        this.createRobotViewRender();
 
-        // 将AxesHelper对象添加到模型的场景中
         scene.add(this.rebotModel);
 
         // 加载石头
         // const {rock1, rock2} = await getRock();
-        const rocks = await getRock();
+        const envGeometries = await this.getEnvGeometries();
         // const plant = await getPlant();
 
         const onMouseMove = (event) => {
@@ -366,13 +362,12 @@ export default class Robot extends React.Component {
             // sharkLoaded,
         ];
         Promise.all(loaded).then((res) => {
-            const envGeometries = rocks;
 
             this.environmentMap.setGeometries(envGeometries);
             this.environment.setGeometries(envGeometries);
 
             this.environment.addTo(scene);
-            scene.add(water.mesh);
+            // scene.add(water.mesh);
 
             this.caustics.setDeltaEnvTexture(1 / this.environmentMap.size);
 
@@ -391,6 +386,8 @@ export default class Robot extends React.Component {
             this.animate();
         });
     };
+
+
 
     animate = () => {
         this.stats.begin();
@@ -422,12 +419,9 @@ export default class Robot extends React.Component {
         this.sceneRenderer.setClearColor(black, 1);
         this.sceneRenderer.clear();
 
-        // 更新探照灯的位置和方向
-        spotlight.position.copy(this.rebotModel.position);
-        spotlight.target.position.copy(shipWall.position); // 设置聚光灯的目标为船壁
-
+        this.robot.render()
         water.mesh.visible = false;
-        this.sceneRenderer.render(scene, this.sceneCamera);
+        // this.sceneRenderer.render(scene, this.sceneCamera);
 
         water.setEnvMapTexture(this.temporaryRenderTarget.texture);
 
@@ -444,7 +438,8 @@ export default class Robot extends React.Component {
 
         this.stats.end();
 
-        this.robotViewRender.render(scene, this.robotCamera);
+        // this.robotViewRender.render(scene, this.robotCamera);
+        this.robotViewRender.render(scene, this.robot.camera);
 
         window.requestAnimationFrame(this.animate);
     };
