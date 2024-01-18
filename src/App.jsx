@@ -35,12 +35,12 @@ function App() {
           styles.content
         )}
       >
-        <div>
+        {/* <div>
           <FloatLeftPane></FloatLeftPane>
-
-        </div>
-        <div className={`${styles.RobotViewBox} max-w-screen-xl`}>
-          <RobotView pushPosition={pushPosition} initPosition={initPosition}></RobotView>
+        </div> */}
+        <div className={`${styles.RobotViewBox}`}>
+          {/* <div className={`${styles.RobotViewBox} max-w-screen-xl`}> */}
+          <RobotView pushPosition={pushPosition} initPosition={initPosition} />
         </div>
         <div>
           <FloatRightPane></FloatRightPane>
