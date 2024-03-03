@@ -30,7 +30,9 @@ const shipWallTexture = shipWallLoader.load("assets/shipWallTexture.jpg");
 //加载图片材质
 const shipWallMaterial = new THREE.MeshPhongMaterial({ map: shipWallTexture });
 // const material = new THREE.MeshBasicMaterial();
-const shipWallGeometry = new THREE.BoxGeometry(35, 5, 25);
+// const shipWallGeometry = new THREE.BoxGeometry(35, 5, 25);
+const shipWallGeometry = new THREE.CylinderGeometry(8, 8, 35, 32);
+shipWallGeometry.rotateX(Math.PI / 2);
 // 创建一个立方体几何体
 const shipWall = new THREE.Mesh(shipWallGeometry, shipWallMaterial);
 //将船壁设置为暗色调
