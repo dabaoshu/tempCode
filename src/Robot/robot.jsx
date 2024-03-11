@@ -155,7 +155,7 @@ export default class Robot extends React.Component {
     const waterPosition = new THREE.Vector3(0, 0, 10);
     // Create Renderer
     this.createSceneViewRender();
-   
+
     // Create mouse Controls
     // Target for computing the water refraction
     this.temporaryRenderTarget = new THREE.WebGLRenderTarget(width, height);
@@ -207,12 +207,11 @@ export default class Robot extends React.Component {
       scene: scene,
       position: new THREE.Vector3(0, 0, 24),
       robotEnvViewRender: this.sceneRenderer,
-      parentDom:this.$robotView
+      parentDom: this.$robotView,
     });
     await this.robot.loadModel();
     this.rebotModel = this.robot.getGroup();
 
-  
     const { initPosition } = this.props;
     initPosition({
       resetX: this.rebotModel.position.x,
@@ -266,7 +265,9 @@ export default class Robot extends React.Component {
 
       this.caustics.setDeltaEnvTexture(1 / this.environmentMap.size);
 
-      this.sceneRenderer.domElement.addEventListener("mousemove", { handleEvent: onMouseMove });
+      this.sceneRenderer.domElement.addEventListener("mousemove", {
+        handleEvent: onMouseMove,
+      });
       // console.log(this.waterSimulation);
       for (var i = 0; i < 5; i++) {
         this.waterSimulation.addDrop(
@@ -312,7 +313,6 @@ export default class Robot extends React.Component {
     this.sceneRenderer.setClearColor(black, 1);
     this.sceneRenderer.clear();
 
-    this.robot.render();
     water.mesh.visible = false;
 
     water.setEnvMapTexture(this.temporaryRenderTarget.texture);
@@ -326,7 +326,8 @@ export default class Robot extends React.Component {
     this.sceneOrbitcontrols.update();
 
     this.stats.end();
-    this.sceneRenderer.render(scene, this.robot.envCamera);
+    // this.sceneRenderer.render(scene, this.robot.envCamera);
+    this.robot.render();
     this.sceneSmallRenderer.render(scene, this.sceneCamera);
     window.requestAnimationFrame(this.animate);
   };

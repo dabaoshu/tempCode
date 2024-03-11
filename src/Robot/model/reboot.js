@@ -12,6 +12,8 @@ export class RobotModel {
         AxesHelper: true,
         scene: undefined,
         position: new THREE.Vector3(0, 0, 0),
+        parentDom: null,
+        robotEnvViewRender: undefined,
       },
       ...config,
     };
@@ -34,7 +36,7 @@ export class RobotModel {
     }
     this.group.add(this.rebotModel);
     this.createCamera();
-    this.createEnvCamera();
+
     // this.createEnvCameraControls()
     this.loadSpotlight();
     this.group.position.set(
@@ -42,6 +44,8 @@ export class RobotModel {
       this.config.position.y,
       this.config.position.z
     );
+    this.createEnv();
+
     this.config.parentDom.appendChild(this.robotViewRender.domElement);
     this.config.scene.add(this.group);
   }
@@ -74,42 +78,45 @@ export class RobotModel {
       minWidth: "100px",
       maxWidth: "300px",
     });
+  };
 
+  createEnv = () => {
+    this.createEnvCamera();
+    this.robotEnvViewRender =
+      this.config.robotEnvViewRender ||
+      createViewRender({
+        position: "absolute",
+        top: "0px",
+        right: "0px",
+        height: "25%",
+        width: "25%",
+        minHeight: "100px",
+        maxHeight: "300px",
+        minWidth: "100px",
+        maxWidth: "300px",
+      });
+    this.createEnvCameraControls();
   };
 
   /**添加到世界场景 */
   createEnvCamera = () => {
     this.envCamera = new THREE.PerspectiveCamera(45, 1, 0.35, 50);
     this.envCamera.name = "envRobotCamera";
-    const lookAtPostion = this.rebotModel.position.clone();
+    const lookAtPostion = this.group.position.clone();
     this.envCamera.up.set(0, 0, 1);
     this.envCamera.position.set(
       lookAtPostion.x + 0,
-      lookAtPostion.y + 1.8,
-      lookAtPostion.z + 0.3
+      lookAtPostion.y + 2.7,
+      lookAtPostion.z + 0.45
     );
     this.envCamera.lookAt(lookAtPostion);
-
-    // this.robotEnvViewRender = createViewRender({
-    //   position: "absolute",
-    //   top: "0px",
-    //   right: "0px",
-    //   height: "25%",
-    //   width: "25%",
-    //   minHeight: "100px",
-    //   maxHeight: "300px",
-    //   minWidth: "100px",
-    //   maxWidth: "300px",
-    // });
-
-    this.group.add(this.envCamera);
-    
+    // this.group.add(this.envCamera);
     // 将AxesHelper对象添加到模型的场景中
     const cameraHelper = new THREE.CameraHelper(this.envCamera);
     // 辅助线加入 场景
-    this.config.scene.add(cameraHelper);
+    this.config.scene.add(this.envCamera);
+    // this.config.scene.add(cameraHelper);
     // this.config.scene.add(this.envCamera);
-    // this.createEnvCameraControls();
   };
 
   /*环境相机控制器*/
@@ -126,7 +133,7 @@ export class RobotModel {
     // 启用或禁用键盘控制。
     this.envRobotOrbitcontrols.enableKeys = false;
     // 缩放
-    this.envRobotOrbitcontrols.enableZoom = false;
+    // this.envRobotOrbitcontrols.enableZoom = false;
     // 设置相机距离原点的最近距离
     // this.envRobotOrbitcontrols.minDistance = 3;
     //  设置相机距离原点的最远距离

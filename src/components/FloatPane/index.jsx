@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { eventBus } from "../../Robot/utils";
 import styles from "./index.module.less";
 import classnames from "classnames";
 import keymaster from "hotkeys-js";
 import { useRobotStore } from "@/store";
+import LongPressButton from "./LongPressButton";
 const keyActions = [
   { label: "上", type: "up", keyCode: "w" },
   { label: "下", type: "down", keyCode: "s" },
@@ -33,10 +33,6 @@ const TypeSelect = () => {
   );
 };
 
-const postMessage = (eventName, type) => {
-  eventBus.emit(eventName, type);
-};
-
 const FollowCheckBox = () => {
   const follow = useRobotStore((state) => state.follow);
   const setFollow = useRobotStore((state) => state.setFollow);
@@ -56,33 +52,8 @@ const FollowCheckBox = () => {
 };
 
 const ControlPanel = () => {
-
-  const runing = useRobotStore((state) => state.runing);
-  const setRunning = useRobotStore((state) => state.setRunning);
+  const { runing, postClickMessage, start, stop, reset } = useRobotStore();
   const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
-  const postClickMessage = useCallback(
-    (type) => {
-      if (!runing) {
-        return;
-      }
-      console.log(type);
-      postMessage("click1", type);
-    },
-    [runing]
-  );
-  const start = () => {
-    setRunning(true);
-    postMessage("click1", "start");
-  };
-
-  const stop = () => {
-    setRunning(false);
-    postMessage("click1", "stop");
-  };
-
-  const reset = () => {
-    postMessage("click1", "reset");
-  };
 
   useEffect(() => {
     /**注册键盘事件 */
@@ -158,7 +129,11 @@ const ControlPanel = () => {
             )}
           >
             {keyActions.map((o) => (
-              <button
+              <LongPressButton
+                onLongPress={() => {
+                  postClickMessage(o.type);
+                }}
+                // <button
                 disabled={!runing}
                 onClick={() => postClickMessage(o.type)}
                 key={o.type}
@@ -168,7 +143,8 @@ const ControlPanel = () => {
                 )}
               >
                 {o.label}
-              </button>
+              </LongPressButton>
+              // </button>
             ))}
           </div>
         </div>

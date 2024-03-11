@@ -1,18 +1,23 @@
 import Tween from "@tweenjs/tween.js";
 import { eventBus } from "./utils";
+import throttle from "lodash/throttle";
 // import * as THREE from "three";
 // import {ROV} from '../utils/rov_dynamic';
-const url = `http://8.134.105.135:7890`
+const url = `http://8.134.105.135:7890`;
 const baseUrl = import.meta.env.VITE_APP_BASE_URL;
 export class RobotExport {
   constructor({ rebotModel }, saveDataCb) {
     this.rebotModel = rebotModel;
     this.saveDataCb = saveDataCb;
+    this.fetchAction = throttle(this.fetchAction, 200, {
+      leading: true,
+      trailing: false,
+    });
     eventBus.on("click1", this.fetchAction);
   }
   running = undefined;
   intervalId = undefined;
-  startRun = (action, still = false) => {
+  startRun = (action, alawy = false) => {
     this.running = true;
 
     const run = async () => {
@@ -54,9 +59,9 @@ export class RobotExport {
 
         // this.runAnimate({ resetX, resetY, resetZ, resetRotX, resetRotY, resetRotZ, })
 
-        console.log("机器人的坐标系position:", this.rebotModel.position);
-        console.log("机器人的坐标系rotation:", this.rebotModel.rotation);
-        if (still) {
+        // console.log("机器人的坐标系position:", this.rebotModel.position);
+        // console.log("机器人的坐标系rotation:", this.rebotModel.rotation);
+        if (alawy) {
           reTry();
         }
       } catch (error) {
@@ -117,6 +122,7 @@ export class RobotExport {
   };
 
   fetchAction = async (type) => {
+    console.log(a++);
     let action = [];
     switch (type) {
       case "start":
