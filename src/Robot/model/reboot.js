@@ -42,6 +42,8 @@ export class RobotModel {
       this.config.position.y,
       this.config.position.z
     );
+    this.config.parentDom.appendChild(this.robotViewRender.domElement);
+    this.config.scene.add(this.group);
   }
 
   loadAxesHelper = (model, size) => {
@@ -72,6 +74,7 @@ export class RobotModel {
       minWidth: "100px",
       maxWidth: "300px",
     });
+
   };
 
   /**添加到世界场景 */
@@ -100,6 +103,11 @@ export class RobotModel {
     // });
 
     this.group.add(this.envCamera);
+    
+    // 将AxesHelper对象添加到模型的场景中
+    const cameraHelper = new THREE.CameraHelper(this.envCamera);
+    // 辅助线加入 场景
+    this.config.scene.add(cameraHelper);
     // this.config.scene.add(this.envCamera);
     // this.createEnvCameraControls();
   };

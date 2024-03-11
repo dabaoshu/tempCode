@@ -51,18 +51,16 @@ export default class Robot extends React.Component {
   async componentDidMount() {
     await this.initializeThreeJS();
     this.addEventListener();
+    const { pushPosition } = this.props;
     this.robotExport = new RobotExport(
       {
         rebotModel: this.rebotModel,
       },
-      this.saveDataCb
+      (position) => {
+        pushPosition(position);
+      }
     );
   }
-
-  saveDataCb = (position) => {
-    const { pushPosition } = this.props;
-    pushPosition(position);
-  };
 
   /**stats */
   initializeStats = () => {
@@ -72,11 +70,6 @@ export default class Robot extends React.Component {
     this.stats.domElement.style.left = "unset";
     this.stats.domElement.style.right = "0px";
     this.$robotView.appendChild(this.stats.domElement);
-  };
-
-  createRobotViewRender = () => {
-    // 创建一个新的渲染器（第一人称的视角）
-    // 使用CSS将其定位在左上角
   };
 
   getEnvGeometries = async () => {
@@ -116,8 +109,6 @@ export default class Robot extends React.Component {
     this.sceneRenderer.autoClear = false;
     this.$robotView.appendChild(this.sceneRenderer.domElement);
     // this.createSceneCamera(this.sceneRenderer.domElement);
-
-
 
     const createSmallViewRender = () => {
       this.sceneSmallRenderer = createViewRender({
@@ -164,7 +155,7 @@ export default class Robot extends React.Component {
     const waterPosition = new THREE.Vector3(0, 0, 10);
     // Create Renderer
     this.createSceneViewRender();
-    const canvas = this.sceneRenderer.domElement;
+   
     // Create mouse Controls
     // Target for computing the water refraction
     this.temporaryRenderTarget = new THREE.WebGLRenderTarget(width, height);
@@ -216,18 +207,12 @@ export default class Robot extends React.Component {
       scene: scene,
       position: new THREE.Vector3(0, 0, 24),
       robotEnvViewRender: this.sceneRenderer,
+      parentDom:this.$robotView
     });
     await this.robot.loadModel();
-    this.createRobotViewRender();
-    // this.$robotView.appendChild(this.robot.robotEnvViewRender.domElement);
-    this.$robotView.appendChild(this.robot.robotViewRender.domElement);
     this.rebotModel = this.robot.getGroup();
-    scene.add(this.rebotModel);
 
-    // 将AxesHelper对象添加到模型的场景中
-    const cameraHelper = new THREE.CameraHelper(this.robot.envCamera);
-    // 辅助线加入 场景
-    // scene.add(cameraHelper);
+  
     const { initPosition } = this.props;
     initPosition({
       resetX: this.rebotModel.position.x,
@@ -245,7 +230,7 @@ export default class Robot extends React.Component {
     // const plant = await getPlant();
 
     const onMouseMove = (event) => {
-      const rect = canvas.getBoundingClientRect();
+      const rect = this.sceneRenderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) * 2) / width - 1;
       mouse.y = (-(event.clientY - rect.top) * 2) / height + 1;
 
@@ -281,7 +266,7 @@ export default class Robot extends React.Component {
 
       this.caustics.setDeltaEnvTexture(1 / this.environmentMap.size);
 
-      canvas.addEventListener("mousemove", { handleEvent: onMouseMove });
+      this.sceneRenderer.domElement.addEventListener("mousemove", { handleEvent: onMouseMove });
       // console.log(this.waterSimulation);
       for (var i = 0; i < 5; i++) {
         this.waterSimulation.addDrop(

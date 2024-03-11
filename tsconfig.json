@@ -17,7 +17,7 @@
     "jsx": "react-jsx",  // 指定将 JSX 编译成什么形式
     "baseUrl": "./src",//配置paths前先配置baseUrl
     "paths": {
-      "@/*": ["*"], // 模块名到基于 baseUrl的路径映射的列表
+      "@/*": ["src/*"], // 模块名到基于 baseUrl的路径映射的列表
     },
   },
   "include": ["src"],

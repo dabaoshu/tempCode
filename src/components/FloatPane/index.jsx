@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { eventBus } from "../../Robot/utils";
 import styles from "./index.module.less";
 import classnames from "classnames";
-import keymaster from 'hotkeys-js';
+import keymaster from "hotkeys-js";
+import { useRobotStore } from "@/store";
 const keyActions = [
   { label: "上", type: "up", keyCode: "w" },
   { label: "下", type: "down", keyCode: "s" },
@@ -36,15 +37,31 @@ const postMessage = (eventName, type) => {
   eventBus.emit(eventName, type);
 };
 
-const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
+const FollowCheckBox = () => {
+  const follow = useRobotStore((state) => state.follow);
+  const setFollow = useRobotStore((state) => state.setFollow);
+  return (
+    <div className="flex flex-wrap justify-center mt-4">
+      <input
+        type="checkbox"
+        value={follow}
+        checked={follow}
+        onChange={(e) => {
+          setFollow(e.target.checked);
+        }}
+      />
+      <span className="ml-2 text-white">是否跟随</span>
+    </div>
+  );
+};
 
-export default function FloatPane() {
-  const [runing, setRunning] = useState(false);
+const ControlPanel = () => {
 
-  const [activeKey, setActiveKey] = useState();
+  const runing = useRobotStore((state) => state.runing);
+  const setRunning = useRobotStore((state) => state.setRunning);
+  const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
   const postClickMessage = useCallback(
     (type) => {
-      console.log(111,runing);
       if (!runing) {
         return;
       }
@@ -68,6 +85,7 @@ export default function FloatPane() {
   };
 
   useEffect(() => {
+    /**注册键盘事件 */
     keyActions.forEach((keyAction) => {
       const { keyCode, label, type } = keyAction;
       keymaster(keyCode, () => {
@@ -75,6 +93,7 @@ export default function FloatPane() {
       });
     });
     return () => {
+      /**remove键盘事件 */
       keyActions.forEach((keyAction) => {
         const { keyCode, label, type } = keyAction;
         keymaster.unbind(keyCode);
@@ -104,7 +123,7 @@ export default function FloatPane() {
       </div> */}
       <TypeSelect />
       <div className="p-4">
-        <div className="flex  flex-wrap justify-center">
+        <div className="flex flex-wrap justify-center">
           <button
             onClick={() => start()}
             className="bg-blue-500 hover:bg-blue-600 w-20 text-white py-2 px-4 rounded-md m-1"
@@ -153,7 +172,19 @@ export default function FloatPane() {
             ))}
           </div>
         </div>
+        <FollowCheckBox></FollowCheckBox>
       </div>
     </div>
+  );
+};
+
+export default function FloatPane() {
+  return (
+    <section>
+      <ControlPanel />
+      {/* <div className={classnames(styles.FloatPane, "blue-box-shadow","mt-10")}>
+          <div>操作面板</div>
+        </div> */}
+    </section>
   );
 }

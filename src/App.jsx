@@ -40,9 +40,7 @@ function App() {
         <div className={`${styles.RobotViewBox} max-w-screen-xl`}>
           <RobotView pushPosition={pushPosition} initPosition={initPosition} />
         </div>
-        <div>
-          <FloatRightPane></FloatRightPane>
-        </div>
+        <FloatRightPane></FloatRightPane>
       </div>
     </div>
   );
