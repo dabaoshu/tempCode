@@ -20,7 +20,6 @@ export class RobotModel {
 
     this.group = new THREE.Group();
     this.loadAxesHelper(this.group, 15);
-    window.cs2 = this;
   }
 
   async loadModel() {
@@ -30,11 +29,19 @@ export class RobotModel {
     this.rebotModel.scale.set(0.3, 0.3, 0.3);
     // 将模型绕 x 轴旋转 180 度
     this.rebotModel.rotation.x = Math.PI;
-    // 加载辅助线
-    if (this.config.AxesHelper) {
-      this.loadAxesHelper(this.rebotModel, 10);
-    }
+  
     this.group.add(this.rebotModel);
+    // const cylinderGeometry = new THREE.CylinderGeometry(2, 1, 3, 32);
+
+    // const cylinderMaterial = new THREE.MeshBasicMaterial({
+    //   color: 0xffffff,
+    //   transparent: true,
+    //   opacity: 0.5,
+    //   emissive: 0xffffff, // 设置发光颜色
+    // });
+
+    // const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+    // this.group.add(cylinderMesh);
     this.createCamera();
 
     // this.createEnvCameraControls()
@@ -48,10 +55,16 @@ export class RobotModel {
 
     this.config.parentDom.appendChild(this.robotViewRender.domElement);
     this.config.scene.add(this.group);
+
+  
+  // 加载辅助线
+    if (this.config.AxesHelper) {
+      this.loadAxesHelper(this.rebotModel, 10);
+    }
   }
 
   loadAxesHelper = (model, size) => {
-    return;
+    // return;
     const rebootModelAxesHelper = new THREE.AxesHelper(size);
     rebootModelAxesHelper.setColors("red", "blue", "yellow");
     // 将AxesHelper对象添加到模型的场景中
@@ -172,17 +185,20 @@ export class RobotModel {
     //给水下机器人的正前方设置探照灯
     spotlight.position.set(
       this.group.position.x,
-      this.group.position.y,
-      this.group.position.z + 1
+      this.group.position.y-0.1,
+      this.group.position.z
     );
     const targetPostion = this.camera.position.clone();
     // lookAtPostion.y = lookAtPostion.y - 1;
     targetPostion.y = targetPostion.y - 100;
     spotlight.target.position.copy(targetPostion);
+    console.log(spotlight);
     //将探照灯添加到场景中
     // 将聚光灯添加到场景中
     this.group.add(spotlight);
     this.group.add(spotlight.target);
+    // const spotLightHelper = new THREE.SpotLightHelper(this.spotlight);
+    // this.config.scene.add(spotLightHelper);
   };
 
   controlsUpdate = () => {

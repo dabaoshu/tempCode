@@ -1,8 +1,30 @@
 import Tween from "@tweenjs/tween.js";
 import { eventBus } from "./utils";
 import throttle from "lodash/throttle";
+import rov from "@/motion";
 // import * as THREE from "three";
 // import {ROV} from '../utils/rov_dynamic';
+
+const getData = async (action) => {
+  // 调用API接口
+  const response = await fetch(`${url}/api/rov/step`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      n_step: 160,
+      action: action,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error("API request failed");
+  }
+  const data = await response.json();
+
+  return data.data_state || [];
+};
+
 const url = `http://8.134.105.135:7890`;
 const baseUrl = import.meta.env.VITE_APP_BASE_URL;
 export class RobotExport {
@@ -23,29 +45,12 @@ export class RobotExport {
     const run = async () => {
       try {
         // 调用API接口
-        const response = await fetch(`${url}/api/rov/step`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            n_step: 160,
-            action: action,
-          }),
-        });
-        if (!response.ok) {
-          throw new Error("API request failed");
-        }
-        const data = await response.json();
-        // let rov = new ROV();
+        const data_state = await getData(action);
 
         //调用JS中的step函数
-        // 调用rov_dynamic.js中的step方法
-        // const data = rov.step(action);
-        console.log("data", data);
-        // 解构final_state数组中的位置和角度信息
-        const [x, y, z, rotationX, rotationY, rotationZ] =
-          data.data_state || [];
+        // const data_state = rov.step(160, action);
+
+        const [x, y, z, rotationX, rotationY, rotationZ] = data_state || [];
 
         const list = [x, y, z, rotationX, rotationY, rotationZ];
         // let resetX = this.rebootModel.position.x + list[0];
@@ -122,7 +127,6 @@ export class RobotExport {
   };
 
   fetchAction = async (type) => {
-    console.log(a++);
     let action = [];
     switch (type) {
       case "start":
