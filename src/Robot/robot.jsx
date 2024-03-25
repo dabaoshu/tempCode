@@ -17,7 +17,7 @@ import { getPlant, getRandomRockPositions, getRock } from "./model/Environment";
 import { RobotModel } from "./model/reboot";
 import { RobotExport } from "./RobotExport";
 import { createViewRender } from "./utils";
-
+import { usePositionStore } from "@/store/usePositionStore";
 // Colors
 const black = new THREE.Color("black");
 const white = new THREE.Color("white");
@@ -47,20 +47,18 @@ const rebootModelAxesHelper = new THREE.AxesHelper(10);
 rebootModelAxesHelper.setColors("red", "blue", "yellow");
 // 将AxesHelper对象添加到模型的场景中
 // scene.add(rebootModelAxesHelper);
+
 export default class Robot extends React.Component {
   $robotView;
 
   async componentDidMount() {
     await this.initializeThreeJS();
     this.addEventListener();
-    const { pushPosition } = this.props;
     this.robotExport = new RobotExport(
       {
         rebotModel: this.rebotModel,
       },
-      (position) => {
-        pushPosition(position);
-      }
+      usePositionStore.getState().pushPosition
     );
   }
 
@@ -213,9 +211,7 @@ export default class Robot extends React.Component {
     });
     await this.robot.loadModel();
     this.rebotModel = this.robot.getGroup();
-
-    const { initPosition } = this.props;
-    initPosition({
+    usePositionStore.getState().initStore({
       resetX: this.rebotModel.position.x,
       resetY: this.rebotModel.position.y,
       resetZ: this.rebotModel.position.z,
@@ -223,7 +219,7 @@ export default class Robot extends React.Component {
       resetRotY: this.rebotModel.rotation.y,
       resetRotZ: this.rebotModel.rotation.z,
       time: Date.now(),
-    });
+    })
 
     // 加载石头
     // const {rock1, rock2} = await getRock();

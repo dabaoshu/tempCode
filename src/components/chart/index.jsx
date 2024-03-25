@@ -7,7 +7,6 @@ const AutoChart = (props) => {
   const [chart, setChart] = React.useState();
 
   const handleResize = () => chart?.resize();
-
   const init = () => {
     if (chart) {
       // 建议替换为 ResizeObserver （2023.5.25）

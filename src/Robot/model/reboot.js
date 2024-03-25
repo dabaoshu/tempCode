@@ -64,7 +64,7 @@ export class RobotModel {
   }
 
   loadAxesHelper = (model, size) => {
-    // return;
+    return;
     const rebootModelAxesHelper = new THREE.AxesHelper(size);
     rebootModelAxesHelper.setColors("red", "blue", "yellow");
     // 将AxesHelper对象添加到模型的场景中
