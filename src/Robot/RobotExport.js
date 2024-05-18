@@ -45,13 +45,15 @@ export class RobotExport {
     const run = async () => {
       try {
         // 调用API接口
-        const data_state = await getData(action);
+        // const data_state = await getData(action);
 
         //调用JS中的step函数
         // const data_state = rov.step(160, action);
-
+        const action2 = nj.array(action);
+        const data = rov.step(160, action2);
+        const {data:data_state} =data.selection
+        console.log(data.selection);
         const [x, y, z, rotationX, rotationY, rotationZ] = data_state || [];
-
         const list = [x, y, z, rotationX, rotationY, rotationZ];
         // let resetX = this.rebootModel.position.x + list[0];
         // let resetY = this.rebootModel.position.y + list[1];
