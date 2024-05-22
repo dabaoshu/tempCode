@@ -28,8 +28,13 @@ export class RobotModel {
     this.rebotModel.name = "robotScene";
     this.rebotModel.scale.set(0.3, 0.3, 0.3);
     // 将模型绕 x 轴旋转 180 度
-    this.rebotModel.rotation.x = Math.PI;
-  
+
+    this.rebotModel.rotation.x = Math.PI / 2;
+    this.mixer = new THREE.AnimationMixer(this.rebotModel);
+
+    this.player = this.mixer.clipAction(Geometry.animations[0]);
+    window.a = Geometry
+    window.b = this.player
     this.group.add(this.rebotModel);
     // const cylinderGeometry = new THREE.CylinderGeometry(2, 1, 3, 32);
 
@@ -56,8 +61,8 @@ export class RobotModel {
     this.config.parentDom.appendChild(this.robotViewRender.domElement);
     this.config.scene.add(this.group);
 
-  
-  // 加载辅助线
+
+    // 加载辅助线
     if (this.config.AxesHelper) {
       this.loadAxesHelper(this.rebotModel, 10);
     }
@@ -185,7 +190,7 @@ export class RobotModel {
     //给水下机器人的正前方设置探照灯
     spotlight.position.set(
       this.group.position.x,
-      this.group.position.y-0.1,
+      this.group.position.y - 0.1,
       this.group.position.z
     );
     const targetPostion = this.camera.position.clone();
@@ -222,6 +227,12 @@ export class RobotModel {
     }
   };
 
+  playerUpdate = () => {
+    if (this.player && this.mixer) {
+      this.mixer.update(0.01);
+    }
+  }
+
   render = () => {
     const targetPostion = this.camera.position.clone();
     // lookAtPostion.y = lookAtPostion.y - 1;
@@ -230,6 +241,7 @@ export class RobotModel {
     this.controlsUpdate();
     this.cameraUpdate();
     this.viewRenderUpdate();
+    this.playerUpdate();
   };
 
   getGroup = () => {
