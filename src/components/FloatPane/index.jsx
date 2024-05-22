@@ -51,6 +51,27 @@ const FollowCheckBox = () => {
   );
 };
 
+const RobotPlyaer = () => {
+  const player = useRobotStore((state) => state.player);
+  const playerStart = useRobotStore((state) => state.playerStart);
+  const playerStop = useRobotStore((state) => state.playerStop);
+  return <div className="flex flex-wrap justify-center mt-4">
+    <input
+      type="checkbox"
+      value={player}
+      checked={player}
+      onChange={(e) => {
+        if (e.target.checked) {
+          playerStart()
+        }else{
+          playerStop()
+        }
+      }}
+    />
+    <span className="ml-2 text-white">机械臂运动</span>
+  </div>
+}
+
 const ControlPanel = () => {
   const { runing, postClickMessage, start, stop, reset } = useRobotStore();
   const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
@@ -149,6 +170,7 @@ const ControlPanel = () => {
           </div>
         </div>
         <FollowCheckBox></FollowCheckBox>
+        <RobotPlyaer></RobotPlyaer>
       </div>
     </div>
   );

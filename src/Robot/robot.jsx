@@ -16,7 +16,7 @@ import {
 import { getPlant, getRandomRockPositions, getRock } from "./model/Environment";
 import { RobotModel } from "./model/reboot";
 import { RobotExport } from "./RobotExport";
-import { createViewRender } from "./utils";
+import { createViewRender, eventBus } from "./utils";
 import { usePositionStore } from "@/store/usePositionStore";
 // Colors
 const black = new THREE.Color("black");
@@ -60,7 +60,18 @@ export default class Robot extends React.Component {
       },
       usePositionStore.getState().pushPosition
     );
+    eventBus.on("robot_play", () => {
+      if (this.robot.player.paused) {
+        this.robot.player.paused = false
+      } else {
+        this.robot.player.play()
+      }
+    });
+    eventBus.on("robot_stop", () => {
+      this.robot.player.paused = true
+    });
   }
+
 
   /**stats */
   initializeStats = () => {
@@ -361,6 +372,8 @@ export default class Robot extends React.Component {
       this.sceneRenderer.domElement.requestFullscreen();
     });
   }
+
+
 
   render() {
     return (

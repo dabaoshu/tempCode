@@ -30,12 +30,12 @@ export default function ButtomPane({ list }) {
     { title: "rotx", value: lastItem.resetRotX },
     { title: "roty", value: lastItem.resetRotY },
     { title: "rotz", value: lastItem.resetRotZ },
-    { title: "vx", value: "62" },
-    { title: "vy", value: "44" },
-    { title: "vz", value: "12" },
-    { title: "wx", value: "13" },
-    { title: "wy", value: "02" },
-    { title: "wz", value: "33" },
+    // { title: "vx", value: "62" },
+    // { title: "vy", value: "44" },
+    // { title: "vz", value: "12" },
+    // { title: "wx", value: "13" },
+    // { title: "wy", value: "02" },
+    // { title: "wz", value: "33" },
   ]
   return (
     <div className={classnames(styles.ButtomPane, 'blue-box-shadow')}>

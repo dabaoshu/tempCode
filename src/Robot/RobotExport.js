@@ -29,6 +29,8 @@ const url = `http://8.134.105.135:7890`;
 const baseUrl = import.meta.env.VITE_APP_BASE_URL;
 export class RobotExport {
   constructor({ rebotModel }, saveDataCb) {
+    this.originPosition = rebotModel.position.clone();
+    this.originRotation = rebotModel.rotation.clone();
     this.rebotModel = rebotModel;
     this.saveDataCb = saveDataCb;
     this.fetchAction = throttle(this.fetchAction, 200, {
@@ -36,6 +38,7 @@ export class RobotExport {
       trailing: false,
     });
     eventBus.on("click1", this.fetchAction);
+    eventBus.on("reset", this.reset);
   }
   running = undefined;
   intervalId = undefined;
@@ -51,8 +54,7 @@ export class RobotExport {
         // const data_state = rov.step(160, action);
         const action2 = nj.array(action);
         const data = rov.step(160, action2);
-        const {data:data_state} =data.selection
-        console.log(data.selection);
+        const { data: data_state } = data.selection
         const [x, y, z, rotationX, rotationY, rotationZ] = data_state || [];
         const list = [x, y, z, rotationX, rotationY, rotationZ];
         // let resetX = this.rebootModel.position.x + list[0];
@@ -77,7 +79,6 @@ export class RobotExport {
     };
 
     const reTry = () => {
-      console.log(this.running);
       this.intervalId = setTimeout(async () => {
         if (this.running) {
           run();
@@ -190,4 +191,31 @@ export class RobotExport {
     }
     // console.log("action:", action);
   };
+
+  reset = () => {
+    // this.rebotModel.position.set(this.originPosition)
+    // this.rebotModel.rotation.set(this.originRotation)
+    // console.log( this.rebotModel);
+   
+    if (this.saveDataCb) {
+      console.log(this.originPosition,this.originRotation);
+      let resetX = this.originPosition.x
+      let resetY = this.originPosition.y
+      let resetZ = this.originPosition.z
+      let resetRotX = this.originRotation.x
+      let resetRotY = this.originRotation.y
+      let resetRotZ = this.originRotation.z
+      let timePointPosition = {
+        resetX,
+        resetY,
+        resetZ,
+        resetRotX,
+        resetRotY,
+        resetRotZ,
+        time: Date.now(),
+      };
+      this.saveDataCb(timePointPosition);
+    }
+    // rov.reset(nj.array([0,0,0,0,0,0]))
+  }
 }

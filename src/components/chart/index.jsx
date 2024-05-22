@@ -20,11 +20,15 @@ const AutoChart = (props) => {
   };
 
   React.useEffect(() => {
-    init();
+    chart?.setOption(props.option);
+  }, [props.option])
+
+  React.useEffect(() => {
+    init()
     return () => {
       window.removeEventListener('resize', handleResize);
     }
-  }, [props.option]);
+  }, []);
 
   return <div ref={chartRef} style={{ height: '100%', width: '100%' }} />;
 };

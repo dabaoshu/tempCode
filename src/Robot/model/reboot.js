@@ -33,8 +33,7 @@ export class RobotModel {
     this.mixer = new THREE.AnimationMixer(this.rebotModel);
 
     this.player = this.mixer.clipAction(Geometry.animations[0]);
-    window.a = Geometry
-    window.b = this.player
+    window.ss=this.player
     this.group.add(this.rebotModel);
     // const cylinderGeometry = new THREE.CylinderGeometry(2, 1, 3, 32);
 
@@ -81,6 +80,7 @@ export class RobotModel {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.35, 100);
     this.camera.name = "robotCamera";
     this.camera.up.set(0, -1, 0);
+    this.camera.position.set(0, -1, 0)
     const lookAtPostion = this.rebotModel.position.clone();
     lookAtPostion.y = lookAtPostion.y - 1;
     this.camera.lookAt(lookAtPostion);

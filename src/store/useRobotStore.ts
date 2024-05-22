@@ -1,6 +1,7 @@
 import { eventBus } from "@/Robot/utils";
 import { create } from "zustand";
 interface Store {
+  player: boolean;
   follow: boolean;
   runing: boolean;
   isLongPressing: boolean;
@@ -13,6 +14,7 @@ export const useRobotStore = create<Store>((set, get) => ({
   follow: false,
   runing: false,
   isLongPressing: false,
+  player: false,
   setFollow: (follow: boolean) => set({ follow }),
   postClickMessage: (type: string) => {
     const runing = get().runing;
@@ -25,13 +27,19 @@ export const useRobotStore = create<Store>((set, get) => ({
     set({ runing: true });
     postMessage("click1", "start");
   },
-
   stop: () => {
     set({ runing: false });
     postMessage("click1", "stop");
   },
-
   reset: () => {
-    postMessage("click1", "reset");
+    eventBus.emit("reset");
+  },
+  playerStart: () => {
+    eventBus.emit("robot_play")
+    set({ player: true })
+  },
+  playerStop: () => {
+    eventBus.emit("robot_stop")
+    set({ player: false })
   },
 }));

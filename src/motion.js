@@ -89,7 +89,7 @@ class ROV extends DynamicParameters {
     this.M = nj.array(M)
     this.M_ = nj.array(M_)
     this.state = nj.array(
-      [0, 0, 0, pi * 0.0, pi * 0.5, pi * 0.0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, pi * 0.0, pi * 0.0, pi * 0.0, 0, 0, 0, 0, 0, 0],
       'float32'
     )
     this.f = nj.array([0, 0, 0, 0, 0, 0], 'float32')
