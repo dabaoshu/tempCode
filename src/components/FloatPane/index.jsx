@@ -4,6 +4,7 @@ import classnames from "classnames";
 import keymaster from "hotkeys-js";
 import { useRobotStore } from "@/store";
 import LongPressButton from "./LongPressButton";
+import { guiContainerId } from "@/utils/dom";
 const keyActions = [
   { label: "上", type: "up", keyCode: "w" },
   { label: "下", type: "down", keyCode: "s" },
@@ -63,7 +64,7 @@ const RobotPlyaer = () => {
       onChange={(e) => {
         if (e.target.checked) {
           playerStart()
-        }else{
+        } else {
           playerStop()
         }
       }}
@@ -180,6 +181,8 @@ export default function FloatPane() {
   return (
     <section>
       <ControlPanel />
+      {/* gui Control class */}
+      <div id={guiContainerId} className={styles.guiContainer}  ></div>
       {/* <div className={classnames(styles.FloatPane, "blue-box-shadow","mt-10")}>
           <div>操作面板</div>
         </div> */}

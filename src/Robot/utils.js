@@ -9,7 +9,7 @@ export function loadFile(filename) {
     });
   });
 }
-export const createViewRender = (style) => {
+export const createViewRender = (style, className) => {
   // 创建一个新的渲染器（第一人称的视角）
   const viewRender = new THREE.WebGLRenderer({
     antialias: true,
@@ -19,6 +19,9 @@ export const createViewRender = (style) => {
   Object.keys(style).forEach((key) => {
     viewRender.domElement.style[key] = style[key];
   });
+  viewRender.domElement.className = className
+  
+  console.log(viewRender.domElement.classList);
   // console.log(viewRender.domElement.style.height);
   return viewRender;
 };

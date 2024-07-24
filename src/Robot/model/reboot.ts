@@ -1,12 +1,31 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as THREE from "three";
+import * as dat from 'dat.gui';
+import rebootStyles from './reboot.module.less'
 // import "./word";
 import { createViewRender } from "../utils";
+import { guiContainerId } from "@/utils/dom";
 const gltfLoader = new GLTFLoader();
 
 export class RobotModel {
-  constructor(config) {
+  group: THREE.Group<THREE.Object3DEventMap>
+  rebotModel?: THREE.Group<THREE.Object3DEventMap>
+  mixer?: THREE.AnimationMixer
+  player: any;
+  robotViewRender: any;
+  camera?: THREE.PerspectiveCamera
+  robotEnvViewRender?: THREE.WebGLRenderer
+  envCamera?: THREE.PerspectiveCamera
+  envRobotOrbitcontrols?: OrbitControls
+  spotlight?: THREE.SpotLight
+  constructor(public config: {
+    AxesHelper: boolean,
+    scene: THREE.Scene,
+    position: THREE.Vector3,
+    parentDom: HTMLElement,
+    robotEnvViewRender: THREE.WebGLRenderer,
+  }) {
     this.config = {
       ...{
         AxesHelper: true,
@@ -22,10 +41,58 @@ export class RobotModel {
     this.loadAxesHelper(this.group, 15);
   }
 
+  addAction = (model) => {
+    model.rotation.y -= THREE.MathUtils.degToRad(-60)
+    const gui = new dat.GUI({
+      autoPlace: false,
+    });
+    const guiContainer = document.getElementById(guiContainerId);
+    guiContainer!.appendChild(gui.domElement);
+    gui.domElement.classList.add('customer-dat-gui')
+
+    const bone = model.getObjectByName('Bone')
+    const bone1 = model.getObjectByName('Bone001')
+    const bone2 = model.getObjectByName('Bone002')
+    const bone3 = model.getObjectByName('Bone003')
+    // const bone4 = model.getObjectByName('Bone004')
+    const bone5 = model.getObjectByName('Bone005')
+    const bone6 = model.getObjectByName('Bone006')
+    const bone7 = model.getObjectByName('Bone007')
+    const bone8 = model.getObjectByName('Bone008')
+
+    const bone9 = model.getObjectByName('Bone009')
+    const bone11 = model.getObjectByName('Bone011')
+
+    gui.add(bone1.rotation, 'z', -0.2, 1.8, 0.1).name('关节1')
+    gui.add(bone2.rotation, 'x', -3.2, -1.6, 0.1).name('关节2')
+    gui.add(bone3.rotation, 'x', -4, -1.6, 0.1).name('关节3')
+    // gui.add(bone4.rotation, 'z', 1.5, 4.7, 0.1).name('关节4')
+    gui.add(bone5.rotation, 'z', -1.6, 1.6, 0.1).name('关节5')
+    gui.add(bone6.rotation, 'x', -1.6, 0, 0.1).name('关节6')
+    gui.add(bone7.rotation, 'y', -2, 2, 0.1).name('关节7')
+    gui.add(bone8.rotation, 'z', -0.4, 0.4, 0.1).name('关节8')
+
+    const leftClip = gui.add(bone9.rotation, 'z', 0.6, 1.8, 0.01).name('夹')
+    const rightClip = gui.add(bone11.rotation, 'y', 0, 0.9, 0.01).name('夹2').remove()
+    leftClip.onChange(value => {
+      const leftDefault = 0.91
+      const count = value - leftDefault
+      const rightDefault = 0.65
+      rightClip.setValue(rightDefault - count)
+    })
+
+    let skeletonHelper = new THREE.SkeletonHelper(bone)
+    return skeletonHelper
+  }
+
   async loadModel() {
     const Geometry = await gltfLoader.loadAsync("models/reboot.glb");
     this.rebotModel = Geometry.scene;
+    const skeletonHelper = this.addAction(this.rebotModel)
+    this.config.scene.add(skeletonHelper)
     this.rebotModel.name = "robotScene";
+
+
     this.rebotModel.scale.set(0.3, 0.3, 0.3);
     // 将模型绕 x 轴旋转 180 度
 
@@ -33,7 +100,6 @@ export class RobotModel {
     this.mixer = new THREE.AnimationMixer(this.rebotModel);
 
     this.player = this.mixer.clipAction(Geometry.animations[0]);
-    window.ss=this.player
     this.group.add(this.rebotModel);
     // const cylinderGeometry = new THREE.CylinderGeometry(2, 1, 3, 32);
 
@@ -81,7 +147,7 @@ export class RobotModel {
     this.camera.name = "robotCamera";
     this.camera.up.set(0, -1, 0);
     this.camera.position.set(0, -1, 0)
-    const lookAtPostion = this.rebotModel.position.clone();
+    const lookAtPostion = this.rebotModel!.position.clone();
     lookAtPostion.y = lookAtPostion.y - 1;
     this.camera.lookAt(lookAtPostion);
     this.group.add(this.camera);
