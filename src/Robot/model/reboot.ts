@@ -2,9 +2,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import * as THREE from "three";
 import * as dat from 'dat.gui';
-import rebootStyles from './reboot.module.less'
 // import "./word";
-import { createViewRender } from "../utils";
 import { guiContainerId } from "@/utils/dom";
 const gltfLoader = new GLTFLoader();
 
@@ -13,17 +11,16 @@ export class RobotModel {
   rebotModel?: THREE.Group<THREE.Object3DEventMap>
   mixer?: THREE.AnimationMixer
   player: any;
-  robotViewRender: any;
   camera?: THREE.PerspectiveCamera
   robotEnvViewRender?: THREE.WebGLRenderer
   envCamera?: THREE.PerspectiveCamera
   envRobotOrbitcontrols?: OrbitControls
-  spotlight?: THREE.SpotLight
+  disposeList: any[] = []
+  updateList: any[] = []
   constructor(public config: {
     AxesHelper: boolean,
     scene: THREE.Scene,
     position: THREE.Vector3,
-    parentDom: HTMLElement,
     robotEnvViewRender: THREE.WebGLRenderer,
   }) {
     this.config = {
@@ -31,7 +28,6 @@ export class RobotModel {
         AxesHelper: true,
         scene: undefined,
         position: new THREE.Vector3(0, 0, 0),
-        parentDom: null,
         robotEnvViewRender: undefined,
       },
       ...config,
@@ -39,10 +35,11 @@ export class RobotModel {
 
     this.group = new THREE.Group();
     this.loadAxesHelper(this.group, 15);
+    this.disposeList = []
   }
 
-  addAction = (model) => {
-    model.rotation.y -= THREE.MathUtils.degToRad(-60)
+  addActionGui = (model) => {
+    // model.rotation.y -= THREE.MathUtils.degToRad(-60)
     const gui = new dat.GUI({
       autoPlace: false,
     });
@@ -80,16 +77,19 @@ export class RobotModel {
       const rightDefault = 0.65
       rightClip.setValue(rightDefault - count)
     })
-
-    let skeletonHelper = new THREE.SkeletonHelper(bone)
+    const skeletonHelper = new THREE.SkeletonHelper(bone)
+    this.config.scene.add(skeletonHelper)
+    this.disposeList.push(() => {
+      gui.destroy()
+    })
     return skeletonHelper
   }
 
   async loadModel() {
     const Geometry = await gltfLoader.loadAsync("models/reboot.glb");
     this.rebotModel = Geometry.scene;
-    const skeletonHelper = this.addAction(this.rebotModel)
-    this.config.scene.add(skeletonHelper)
+    this.addActionGui(this.rebotModel)
+
     this.rebotModel.name = "robotScene";
 
 
@@ -123,7 +123,6 @@ export class RobotModel {
     );
     this.createEnv();
 
-    this.config.parentDom.appendChild(this.robotViewRender.domElement);
     this.config.scene.add(this.group);
 
 
@@ -141,7 +140,7 @@ export class RobotModel {
     model.add(rebootModelAxesHelper);
   };
 
-  /**创建机器人视野 */
+  /**创建机器人的第一人视野 */
   createCamera = () => {
     this.camera = new THREE.PerspectiveCamera(45, 1, 0.35, 100);
     this.camera.name = "robotCamera";
@@ -151,34 +150,34 @@ export class RobotModel {
     lookAtPostion.y = lookAtPostion.y - 1;
     this.camera.lookAt(lookAtPostion);
     this.group.add(this.camera);
-
-    this.robotViewRender = createViewRender({
-      position: "absolute",
-      top: 0,
-      height: "25%",
-      width: "25%",
-      minHeight: "100px",
-      maxHeight: "300px",
-      minWidth: "100px",
-      maxWidth: "300px",
+    const domElement = document.getElementById('robotFirstViewScene') as HTMLElement;
+    const robotViewRender = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      canvas: domElement,
     });
+    this.updateList.push(() => {
+      if (robotViewRender) {
+        robotViewRender.render(this.config.scene, this.camera);
+      }
+    })
   };
 
   createEnv = () => {
     this.createEnvCamera();
     this.robotEnvViewRender =
-      this.config.robotEnvViewRender ||
-      createViewRender({
-        position: "absolute",
-        top: "0px",
-        right: "0px",
-        height: "25%",
-        width: "25%",
-        minHeight: "100px",
-        maxHeight: "300px",
-        minWidth: "100px",
-        maxWidth: "300px",
-      });
+      this.config.robotEnvViewRender
+    // createViewRender({
+    //   position: "absolute",
+    //   top: "0px",
+    //   right: "0px",
+    //   height: "25%",
+    //   width: "25%",
+    //   minHeight: "100px",
+    //   maxHeight: "300px",
+    //   minWidth: "100px",
+    //   maxWidth: "300px",
+    // });
     this.createEnvCameraControls();
   };
 
@@ -201,6 +200,10 @@ export class RobotModel {
     this.config.scene.add(this.envCamera);
     // this.config.scene.add(cameraHelper);
     // this.config.scene.add(this.envCamera);
+
+
+
+
   };
 
   /*环境相机控制器*/
@@ -236,6 +239,11 @@ export class RobotModel {
     this.envRobotOrbitcontrols.addEventListener("change", (obj) => {
       this.updateEnvCamera();
     });
+    this.updateList.push(() => {
+      if (this.envRobotOrbitcontrols) {
+        this.envRobotOrbitcontrols.update()
+      }
+    })
   };
 
   updateEnvCamera = () => {
@@ -250,7 +258,6 @@ export class RobotModel {
     // 添加水下机器人探照灯，默认是白色光源
     // 创建聚光灯
     const spotlight = new THREE.SpotLight(0xffffff, 4, 100);
-    this.spotlight = spotlight;
     spotlight.angle = Math.PI / 8; // 缩小光斑角度
     spotlight.penumbra = 0.5; // 轻微软化边缘
     //给水下机器人的正前方设置探照灯
@@ -270,13 +277,14 @@ export class RobotModel {
     this.group.add(spotlight.target);
     // const spotLightHelper = new THREE.SpotLightHelper(this.spotlight);
     // this.config.scene.add(spotLightHelper);
+    this.updateList.push(() => {
+      const targetPostion = this.camera.position.clone();
+      // lookAtPostion.y = lookAtPostion.y - 1;
+      targetPostion.y = targetPostion.y - 100;
+      spotlight.target.position.copy(targetPostion);
+    })
   };
 
-  controlsUpdate = () => {
-    if (this.envRobotOrbitcontrols) {
-      this.envRobotOrbitcontrols.update();
-    }
-  };
 
   cameraUpdate = () => {
     if (this.envCamera) {
@@ -288,9 +296,7 @@ export class RobotModel {
     if (this.robotEnvViewRender) {
       this.robotEnvViewRender.render(this.config.scene, this.envCamera);
     }
-    if (this.robotViewRender) {
-      this.robotViewRender.render(this.config.scene, this.camera);
-    }
+
   };
 
   playerUpdate = () => {
@@ -300,17 +306,21 @@ export class RobotModel {
   }
 
   render = () => {
-    const targetPostion = this.camera.position.clone();
-    // lookAtPostion.y = lookAtPostion.y - 1;
-    targetPostion.y = targetPostion.y - 100;
-    this.spotlight.target.position.copy(targetPostion);
-    this.controlsUpdate();
+
     this.cameraUpdate();
     this.viewRenderUpdate();
+    this.updateList.forEach(fn => {
+      fn()
+    });
     this.playerUpdate();
+
   };
 
   getGroup = () => {
     return this.group;
   };
+
+  dispose = () => {
+    this.disposeList.forEach(fn => fn())
+  }
 }

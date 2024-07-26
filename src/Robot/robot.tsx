@@ -1,10 +1,11 @@
-import React from "react";
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-import Stats from "three/examples/jsm/libs/stats.module";
-import Tween from "@tweenjs/tween.js";
+// @ts-nocheck
+import React from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import Stats from 'three/examples/jsm/libs/stats.module';
+import Tween from '@tweenjs/tween.js';
 
 import {
   Caustics,
@@ -12,20 +13,22 @@ import {
   EnvironmentMap,
   Water,
   WaterSimulation,
-} from "./model";
-import { getPlant, getRandomRockPositions, getRock } from "./model/Environment";
-import { RobotModel } from "./model/reboot";
-import { RobotExport } from "./RobotExport";
-import { createViewRender, eventBus } from "./utils";
-import { usePositionStore } from "@/store/usePositionStore";
+} from './model';
+import { getPlant, getRandomRockPositions, getRock } from './model/Environment';
+import { RobotModel } from './model/reboot';
+import { RobotExport } from './RobotExport';
+import { eventBus, makeHd } from './utils';
+import { usePositionStore } from '@/store/usePositionStore';
+import styles from './reboot.module.less';
+import classnames from 'classnames';
 // Colors
-const black = new THREE.Color("black");
-const white = new THREE.Color("white");
+const black = new THREE.Color('black');
+const white = new THREE.Color('white');
 
 const shipWallLoader = new THREE.TextureLoader();
 
 // 加载船壁纹理
-const shipWallTexture = shipWallLoader.load("assets/shipWallTexture.jpg");
+const shipWallTexture = shipWallLoader.load('assets/shipWallTexture.jpg');
 
 //加载图片材质
 const shipWallMaterial = new THREE.MeshPhongMaterial({ map: shipWallTexture });
@@ -44,42 +47,50 @@ const scene = new THREE.Scene();
 const gltfLoader = new GLTFLoader();
 
 const rebootModelAxesHelper = new THREE.AxesHelper(10);
-rebootModelAxesHelper.setColors("red", "blue", "yellow");
+rebootModelAxesHelper.setColors('red', 'blue', 'yellow');
 // 将AxesHelper对象添加到模型的场景中
 // scene.add(rebootModelAxesHelper);
 
 export default class Robot extends React.Component {
-  $robotView;
+  $robotView!: HTMLElement;
+  robotExport: RobotExport;
+  stats: Stats;
+  sceneRenderer: THREE.WebGLRenderer;
+  sceneSmallRenderer: THREE.WebGLRenderer;
+  sceneCamera: THREE.PerspectiveCamera;
+  temporaryRenderTarget: THREE.WebGLRenderTarget<THREE.Texture>;
+  clock: THREE.Clock;
+  waterSimulation: WaterSimulation;
+  environmentMap: EnvironmentMap;
+  environment: Environment;
+  caustics: Caustics;
+
+  animateUpdateList: any[];
+  disposeList: any[];
+  constructor(props: any) {
+    super(props);
+    this.animateUpdateList = [];
+    this.disposeList = [];
+  }
+
+  state = { mainScene: 'firstRobotViewScene' };
 
   async componentDidMount() {
     await this.initializeThreeJS();
     this.addEventListener();
-    this.robotExport = new RobotExport(
-      {
-        rebotModel: this.rebotModel,
-      },
-      usePositionStore.getState().pushPosition
-    );
-    eventBus.on("robot_play", () => {
-      if (this.robot.player.paused) {
-        this.robot.player.paused = false
-      } else {
-        this.robot.player.play()
-      }
-    });
-    eventBus.on("robot_stop", () => {
-      this.robot.player.paused = true
-    });
   }
 
+  componentWillUnmount(): void {
+    this.disposeList.forEach((fn) => fn());
+  }
 
   /**stats */
   initializeStats = () => {
     this.stats = new Stats();
     this.stats.showPanel(0);
-    this.stats.domElement.style.position = "absolute";
-    this.stats.domElement.style.left = "unset";
-    this.stats.domElement.style.right = "0px";
+    this.stats.domElement.style.position = 'absolute';
+    this.stats.domElement.style.left = 'unset';
+    this.stats.domElement.style.right = '0px';
     this.$robotView.appendChild(this.stats.domElement);
   };
 
@@ -110,52 +121,95 @@ export default class Robot extends React.Component {
   };
 
   createSceneViewRender = () => {
-    const width = this.$robotView.offsetWidth;
-    const height = this.$robotView.offsetHeight;
+    // 创建第一人称视角
     this.sceneRenderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      canvas: document.getElementById('firstRobotViewScene'),
     });
-    this.sceneRenderer.setSize(width, height);
-    this.sceneRenderer.autoClear = false;
-    this.$robotView.appendChild(this.sceneRenderer.domElement);
-    // this.createSceneCamera(this.sceneRenderer.domElement);
 
-    const createSmallViewRender = () => {
-      this.sceneSmallRenderer = createViewRender({
-        position: "absolute",
-        top: "0px",
-        right: "0px",
-        height: "25%",
-        width: "25%",
-        minHeight: "100px",
-        maxHeight: "300px",
-        minWidth: "100px",
-        maxWidth: "300px",
-      });
-      this.$robotView.appendChild(this.sceneSmallRenderer.domElement);
-      this.createSceneCamera(this.sceneSmallRenderer.domElement);
-    };
-    createSmallViewRender();
+    this.sceneRenderer.autoClear = false;
+
+    makeHd(this.sceneRenderer);
+    // 创建第三人称视角
+    this.createThirdSceneRender();
   };
 
-  createSceneCamera = (domElement) => {
-    const width = this.$robotView.offsetWidth;
-    const height = this.$robotView.offsetHeight;
+  // 创建第三人称视角
+  createThirdSceneRender = (showCameraHelper) => {
+    const domElement = document.getElementById('robotViewScene') as HTMLElement;
+    const sceneSmallRenderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      canvas: domElement,
+    });
+    makeHd(sceneSmallRenderer);
+    const width = domElement.offsetWidth;
+    const height = domElement.offsetHeight;
     this.sceneCamera = new THREE.PerspectiveCamera(75, width / height, 1, 1000);
     this.sceneCamera.position.set(6, 2, 20);
     this.sceneCamera.up.set(0, 0, 1);
+    const sceneOrbitcontrols = new OrbitControls(this.sceneCamera, domElement);
 
-    // const cameraHelper2 = new THREE.CameraHelper(this.sceneCamera)
-    // // 辅助线加入 场景
-    // scene.add(cameraHelper2)
-    scene.add(this.sceneCamera);
-    // this.sceneCamera.position.copy(rebotModelPosition);
-    // const f = 3;
-    // this.sceneCamera.position.x += f;
-    // this.sceneCamera.position.y += f;
-    // this.sceneCamera.position.z += f;
-    this.sceneOrbitcontrols = new OrbitControls(this.sceneCamera, domElement);
+    this.animateUpdateList.push(() => {
+      sceneOrbitcontrols.update();
+    });
+    this.animateUpdateList.push(() => {
+      sceneSmallRenderer.render(scene, this.sceneCamera);
+    });
+    if (showCameraHelper) {
+      const cameraHelper2 = new THREE.CameraHelper(this.sceneCamera);
+      // 辅助线加入 场景
+      scene.add(cameraHelper2);
+      scene.add(this.sceneCamera);
+    }
+  };
+
+  // 创建机器人
+  createRobot = async () => {
+    const robot = new RobotModel({
+      scene: scene,
+      position: new THREE.Vector3(0, 0, 24),
+      robotEnvViewRender: this.sceneRenderer,
+    });
+    this.robot = robot;
+
+    await robot.loadModel();
+    const rebotModel = robot.getGroup();
+
+    eventBus.on('robot_play', () => {
+      if (robot.player.paused) {
+        robot.player.paused = false;
+      } else {
+        robot.player.play();
+      }
+    });
+    eventBus.on('robot_stop', () => {
+      robot.player.paused = true;
+    });
+
+    // 加入更新队列
+    this.animateUpdateList.push(() => {
+      robot.render();
+    });
+    // 加入销毁队列
+    this.disposeList.push(() => {
+      robot?.dispose();
+    });
+    usePositionStore.getState().initStore({
+      resetX: rebotModel.position.x,
+      resetY: rebotModel.position.y,
+      resetZ: rebotModel.position.z,
+      resetRotX: rebotModel.rotation.x,
+      resetRotY: rebotModel.rotation.y,
+      resetRotZ: rebotModel.rotation.z,
+      time: Date.now(),
+    });
+
+    this.robotExport = new RobotExport(
+      { rebotModel },
+      usePositionStore.getState().pushPosition
+    );
   };
 
   initializeThreeJS = async () => {
@@ -196,7 +250,7 @@ export default class Robot extends React.Component {
     pmremGenerator.compileEquirectangularShader();
 
     // 加载HDR图像
-    rgbeLoader.load("assets/pic02.hdr", function (texture) {
+    rgbeLoader.load('assets/pic02.hdr', function (texture) {
       const envMap = pmremGenerator.fromEquirectangular(texture).texture;
       scene.environment = envMap;
       scene.background = texture;
@@ -214,23 +268,7 @@ export default class Robot extends React.Component {
     this.caustics = new Caustics();
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 设置环境光颜色和强度
     scene.add(ambientLight); // 将环境光添加到场景中
-    this.robot = new RobotModel({
-      scene: scene,
-      position: new THREE.Vector3(0, 0, 24),
-      robotEnvViewRender: this.sceneRenderer,
-      parentDom: this.$robotView,
-    });
-    await this.robot.loadModel();
-    this.rebotModel = this.robot.getGroup();
-    usePositionStore.getState().initStore({
-      resetX: this.rebotModel.position.x,
-      resetY: this.rebotModel.position.y,
-      resetZ: this.rebotModel.position.z,
-      resetRotX: this.rebotModel.rotation.x,
-      resetRotY: this.rebotModel.rotation.y,
-      resetRotZ: this.rebotModel.rotation.z,
-      time: Date.now(),
-    })
+    await this.createRobot();
 
     // 加载石头
     // const {rock1, rock2} = await getRock();
@@ -265,6 +303,10 @@ export default class Robot extends React.Component {
       this.caustics.loaded,
       // sharkLoaded,
     ];
+
+    // Update the water
+    // this.animateUpdateList.push(() => {});
+
     Promise.all(loaded).then((res) => {
       this.environmentMap.setGeometries(envGeometries);
       this.environment.setGeometries(envGeometries);
@@ -274,7 +316,7 @@ export default class Robot extends React.Component {
 
       this.caustics.setDeltaEnvTexture(1 / this.environmentMap.size);
 
-      this.sceneRenderer.domElement.addEventListener("mousemove", {
+      this.sceneRenderer.domElement.addEventListener('mousemove', {
         handleEvent: onMouseMove,
       });
       // console.log(this.waterSimulation);
@@ -332,18 +374,14 @@ export default class Robot extends React.Component {
     this.sceneRenderer.clear();
 
     water.mesh.visible = true;
-    this.sceneOrbitcontrols.update();
-
+    this.animateUpdateList.forEach((update) => update());
     this.stats.end();
-    // this.sceneRenderer.render(scene, this.robot.envCamera);
-    this.robot.render();
-    this.sceneSmallRenderer.render(scene, this.sceneCamera);
     window.requestAnimationFrame(this.animate);
   };
 
   addEventListener() {
     // 添加窗口变化监听器
-    window.addEventListener("resize", () => {
+    window.addEventListener('resize', () => {
       // 更新修改相机比例
       const width = this.$robotView.offsetWidth;
       const height = this.$robotView.offsetHeight;
@@ -353,35 +391,70 @@ export default class Robot extends React.Component {
       // 更新画布大小
       this.sceneRenderer.setSize(
         width, // 宽度
-        height // 高度
+        height, // 高度
+        false
       );
       // 更新画布像素比
       this.sceneRenderer.setPixelRatio(window.devicePixelRatio);
     });
 
     // 监听鼠标双击事件
-    this.$robotView.addEventListener("dblclick", () => {
+    this.$robotView.addEventListener('dblclick', () => {
       // 获取当前状态
-      const fullscreenElement = document.fullscreenElement;
-      if (fullscreenElement) {
-        // 退出全屏
-        document.exitFullscreen();
-        return;
-      }
-      // 请求画布全屏
-      this.sceneRenderer.domElement.requestFullscreen();
+      // const fullscreenElement = document.fullscreenElement;
+      // if (fullscreenElement) {
+      //   // 退出全屏
+      //   document.exitFullscreen();
+      //   return;
+      // }
+      // // 请求画布全屏
+      // this.$robotView.requestFullscreen();
     });
   }
 
-
+  setMainScene = (name) => {
+    this.setState({ mainScene: name });
+  };
 
   render() {
+    const { mainScene } = this.state;
     return (
-      <div
-        className="w-full h-full relative"
-        ref={(v) => (this.$robotView = v)}
-        id="RobotView"
-      ></div>
+      <div className="w-full h-full relative">
+        <div
+          ref={(v) => (this.$robotView = v)}
+          id="RobotView"
+          className="w-full h-full relative"
+        >
+          <canvas
+            id="robotFirstViewScene"
+            className={styles['left_scene_view']}
+          ></canvas>
+          <canvas
+            id="robotViewScene"
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              this.setMainScene('robotViewScene');
+            }}
+            className={
+              mainScene === 'robotViewScene'
+                ? styles['main_scene_view']
+                : styles['right_scene_view']
+            }
+          ></canvas>
+          <canvas
+            id="firstRobotViewScene"
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              this.setMainScene('firstRobotViewScene');
+            }}
+            className={
+              mainScene === 'firstRobotViewScene'
+                ? styles['main_scene_view']
+                : styles['right_scene_view']
+            }
+          ></canvas>
+        </div>
+      </div>
     );
   }
 }

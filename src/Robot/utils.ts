@@ -9,18 +9,27 @@ export function loadFile(filename) {
     });
   });
 }
-export const createViewRender = (style, className) => {
-  // 创建一个新的渲染器（第一人称的视角）
+
+export const makeHd = (renderer: THREE.WebGLRenderer) => {
+  const targetDom = renderer.domElement;
+  const width = targetDom!.parentElement.offsetWidth;
+  const height = targetDom!.parentElement.offsetHeight;
+  renderer.setSize(width, height, false);
+};
+
+export const createViewRender = (style, className, canvas) => {
+  // 创建一个新的渲染器（第一人称的视角）if
   const viewRender = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
+    canvas
   });
   // 使用CSS将其定位在左上角
   Object.keys(style).forEach((key) => {
     viewRender.domElement.style[key] = style[key];
   });
   viewRender.domElement.className = className
-  
+
   console.log(viewRender.domElement.classList);
   // console.log(viewRender.domElement.style.height);
   return viewRender;
