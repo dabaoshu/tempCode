@@ -15,7 +15,7 @@ export class RobotModel {
   camera?: THREE.PerspectiveCamera;
   robotEnvViewRender!: THREE.WebGLRenderer;
   envCamera!: THREE.PerspectiveCamera;
-  envRobotOrbitcontrols?: OrbitControls;
+  envRobotOrbitcontrols!: OrbitControls;
   disposeList: any[] = [];
   updateList: any[] = [];
   constructor(
@@ -206,6 +206,7 @@ export class RobotModel {
       this.envCamera,
       this.robotEnvViewRender.domElement
     );
+
     // this.envRobotOrbitcontrols.enableDamping = true;
     this.followRobotCamera();
     //  自动旋转
@@ -309,5 +310,6 @@ export class RobotModel {
 
   updateRender = () => {
     resizeRenderer(this.envCamera, this.robotEnvViewRender, "updateRender");
+    this.envRobotOrbitcontrols.update();
   };
 }

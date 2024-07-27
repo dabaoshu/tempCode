@@ -14,7 +14,7 @@ export const makeHd = (renderer: THREE.WebGLRenderer) => {
   const targetDom = renderer.domElement;
   const width = targetDom!.parentElement.offsetWidth;
   const height = targetDom!.parentElement.offsetHeight;
-  renderer.setSize(width, height, false);
+  renderer.setSize(width, height,false);
 };
 
 export const resizeRenderer = (
@@ -22,16 +22,15 @@ export const resizeRenderer = (
   renderer: THREE.WebGLRenderer,
   devName?: string
 ) => {
-
+	// camera.aspect = window.innerWidth / window.innerHeight;
   const targetDom = renderer.domElement;
   const width = targetDom!.offsetWidth;
   const height = targetDom!.offsetHeight;
-  console.log(devName,width,height);
-  console.log(devName,renderer.domElement);
-  
+  // const width = window.innerWidth
+  // const height =window.innerHeight;
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(width, height, false);
+  renderer.setSize(width, height,false);
 
   renderer.setPixelRatio(window.devicePixelRatio);
 };
@@ -49,7 +48,6 @@ export const createViewRender = (style, className, canvas) => {
   });
   viewRender.domElement.className = className;
 
-  console.log(viewRender.domElement.classList);
   // console.log(viewRender.domElement.style.height);
   return viewRender;
 };

@@ -21,15 +21,15 @@ export const useRobotStore = create<Store>((set, get) => ({
     if (!runing) {
       return;
     }
-    postMessage("click1", type);
+    postMessage("fetchAction", type);
   },
   start: () => {
     set({ runing: true });
-    postMessage("click1", "start");
+    postMessage("fetchAction", "start");
   },
   stop: () => {
     set({ runing: false });
-    postMessage("click1", "stop");
+    postMessage("fetchAction", "stop");
   },
   reset: () => {
     eventBus.emit("reset");

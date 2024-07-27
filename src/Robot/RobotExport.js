@@ -4,7 +4,22 @@ import throttle from "lodash/throttle";
 import rov from "@/motion";
 // import * as THREE from "three";
 // import {ROV} from '../utils/rov_dynamic';
+function tweensComplete(tweens) {
+  return new Promise((resolve) => {
+    let completed = 0;
+    const total = tweens.length;
+    const onComplete = () => {
+      completed++;
+      if (completed === total) {
+        resolve();
+      }
+    };
 
+    tweens.forEach((tween) => {
+      tween.onComplete(onComplete).start();
+    });
+  });
+}
 const getData = async (action) => {
   // 调用API接口
   const response = await fetch(`${url}/api/rov/step`, {
@@ -37,7 +52,7 @@ export class RobotExport {
       leading: true,
       trailing: false,
     });
-    eventBus.on("click1", this.fetchAction);
+    eventBus.on("fetchAction", this.fetchAction);
     eventBus.on("reset", this.reset);
   }
   running = undefined;
@@ -54,22 +69,10 @@ export class RobotExport {
         // const data_state = rov.step(160, action);
         const action2 = nj.array(action);
         const data = rov.step(160, action2);
-        const { data: data_state } = data.selection
+        const { data: data_state } = data.selection;
         const [x, y, z, rotationX, rotationY, rotationZ] = data_state || [];
         const list = [x, y, z, rotationX, rotationY, rotationZ];
-        // let resetX = this.rebootModel.position.x + list[0];
-        // let resetY = this.rebootModel.position.y + list[1];
-        // let resetZ = this.rebootModel.position.z + list[2];
-        // let resetRotX = this.rebootModel.rotation.x + list[3];
-        // let resetRotY = this.rebootModel.rotation.y + list[4];
-        // let resetRotZ = this.rebootModel.rotation.z + list[5];
-
-        this.updateModel(list);
-
-        // this.runAnimate({ resetX, resetY, resetZ, resetRotX, resetRotY, resetRotZ, })
-
-        // console.log("机器人的坐标系position:", this.rebotModel.position);
-        // console.log("机器人的坐标系rotation:", this.rebotModel.rotation);
+        await this.updateModel(list);
         if (alawy) {
           reTry();
         }
@@ -94,27 +97,33 @@ export class RobotExport {
     }
   };
 
-  updateModel = (list) => {
+  updateModel = async (list) => {
     let resetX = this.rebotModel.position.x + list[0];
     let resetY = this.rebotModel.position.y + list[1];
     let resetZ = this.rebotModel.position.z + list[2];
     let resetRotX = this.rebotModel.rotation.x + list[3];
     let resetRotY = this.rebotModel.rotation.y + list[4];
     let resetRotZ = this.rebotModel.rotation.z + list[5];
-
     var rebotModelPosition = new Tween.Tween(this.rebotModel.position)
       .to({ x: resetX, y: resetY, z: resetZ }, 1000) // 2秒内移动到指定位置
-      .easing(Tween.Easing.Quadratic.Out); // 使用缓动函数使动画更平滑
+      .easing(Tween.Easing.Quadratic.Out);
+    // 使用缓动函数使动画更平滑
 
     // 创建一个新的Tween对象，用于更新xyz的角度运动
     var rebotModelRotation = new Tween.Tween(this.rebotModel.rotation)
       .to({ x: resetRotX, y: resetRotY, z: resetRotZ }, 1000) // 2秒内旋转到指定角度
-      .easing(Tween.Easing.Quadratic.Out); // 使用缓动函数使动画更平滑
+      .easing(Tween.Easing.Quadratic.Out);
 
-    [rebotModelPosition, rebotModelRotation].forEach((tween) => {
-      tween.start();
-    });
+    // 使用缓动函数使动画更平滑
 
+    // [rebotModelPosition, rebotModelRotation].forEach((tween) => {
+    //   tween.start();
+    // });
+    await tweensComplete([rebotModelPosition, rebotModelRotation])
+
+    // tweenGroup.onComplete(() => {
+    //   console.log(66);
+    // });
     if (this.saveDataCb) {
       let timePointPosition = {
         resetX,
@@ -196,15 +205,15 @@ export class RobotExport {
     // this.rebotModel.position.set(this.originPosition)
     // this.rebotModel.rotation.set(this.originRotation)
     // console.log( this.rebotModel);
-   
+
     if (this.saveDataCb) {
-      console.log(this.originPosition,this.originRotation);
-      let resetX = this.originPosition.x
-      let resetY = this.originPosition.y
-      let resetZ = this.originPosition.z
-      let resetRotX = this.originRotation.x
-      let resetRotY = this.originRotation.y
-      let resetRotZ = this.originRotation.z
+      console.log(this.originPosition, this.originRotation);
+      let resetX = this.originPosition.x;
+      let resetY = this.originPosition.y;
+      let resetZ = this.originPosition.z;
+      let resetRotX = this.originRotation.x;
+      let resetRotY = this.originRotation.y;
+      let resetRotZ = this.originRotation.z;
       let timePointPosition = {
         resetX,
         resetY,
@@ -217,5 +226,5 @@ export class RobotExport {
       this.saveDataCb(timePointPosition);
     }
     // rov.reset(nj.array([0,0,0,0,0,0]))
-  }
+  };
 }

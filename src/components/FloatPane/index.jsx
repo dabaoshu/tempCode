@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState ,memo} from "react";
 import styles from "./index.module.less";
 import classnames from "classnames";
 import keymaster from "hotkeys-js";
@@ -34,23 +34,23 @@ const TypeSelect = () => {
   );
 };
 
-const FollowCheckBox = () => {
-  const follow = useRobotStore((state) => state.follow);
-  const setFollow = useRobotStore((state) => state.setFollow);
-  return (
-    <div className="flex flex-wrap justify-center mt-4">
-      <input
-        type="checkbox"
-        value={follow}
-        checked={follow}
-        onChange={(e) => {
-          setFollow(e.target.checked);
-        }}
-      />
-      <span className="ml-2 text-white">是否跟随</span>
-    </div>
-  );
-};
+// const FollowCheckBox = () => {
+//   const follow = useRobotStore((state) => state.follow);
+//   const setFollow = useRobotStore((state) => state.setFollow);
+//   return (
+//     <div className="flex flex-wrap justify-center mt-4">
+//       <input
+//         type="checkbox"
+//         value={follow}
+//         checked={follow}
+//         onChange={(e) => {
+//           setFollow(e.target.checked);
+//         }}
+//       />
+//       <span className="ml-2 text-white">是否跟随</span>
+//     </div>
+//   );
+// };
 
 const RobotPlyaer = () => {
   const player = useRobotStore((state) => state.player);
@@ -73,7 +73,7 @@ const RobotPlyaer = () => {
   </div>
 }
 
-const ControlPanel = () => {
+const ControlPanel = memo(() => {
   const { runing, postClickMessage, start, stop, reset } = useRobotStore();
   const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
 
@@ -175,7 +175,7 @@ const ControlPanel = () => {
       </div>
     </div>
   );
-};
+});
 
 export default function FloatPane() {
   return (

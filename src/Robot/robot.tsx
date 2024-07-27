@@ -142,17 +142,22 @@ export default class Robot extends React.Component {
     );
     this.scene_main_camera.position.set(6, 2, 20);
     this.scene_main_camera.up.set(0, 0, 1);
-    const sceneOrbitcontrols = new OrbitControls(
+    this.sceneOrbitcontrols = new OrbitControls(
       this.scene_main_camera,
       domElement
     );
-    makeHd(this.scene_main_renderer);
 
+    this.sceneOrbitcontrols.target.set(0, 0.5, 0);
+    this.sceneOrbitcontrols.update();
+    this.sceneOrbitcontrols.enablePan = false;
+    // this.sceneOrbitcontrols.enableDamping = true;
+
+    makeHd(this.scene_main_renderer);
     this.animateUpdateList.push(() => {
       this.scene_main_renderer.render(scene, this.scene_main_camera);
     });
     this.animateUpdateList.push(() => {
-      sceneOrbitcontrols.update();
+      this.sceneOrbitcontrols.update();
     });
     if (showCameraHelper) {
       const cameraHelper2 = new THREE.CameraHelper(this.scene_main_camera);
@@ -162,11 +167,11 @@ export default class Robot extends React.Component {
     }
   };
 
-  // 创建机器人
-  createRobot = async () => {
+  // 加载机器人
+  loadRobot = async () => {
     const robot = new RobotModel({
       scene: scene,
-      position: new THREE.Vector3(0, 0, -10),
+      position: new THREE.Vector3(0, 0, 18),
     });
     this.robot = robot;
 
@@ -264,7 +269,8 @@ export default class Robot extends React.Component {
     this.caustics = new Caustics();
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // 设置环境光颜色和强度
     scene.add(ambientLight); // 将环境光添加到场景中
-    await this.createRobot();
+    // 加载机器人
+    await this.loadRobot();
 
     // 加载石头
     // const {rock1, rock2} = await getRock();
@@ -372,34 +378,26 @@ export default class Robot extends React.Component {
     water.mesh.visible = true;
     this.animateUpdateList.forEach((update) => update());
     this.stats.end();
-    window.requestAnimationFrame(this.animate);
+    this.animationFrameId = window.requestAnimationFrame(this.animate);
   };
 
   addEventListener() {
     // 添加窗口变化监听器
     window.addEventListener("resize", () => {
       this.robot.updateRender();
+      resizeRenderer(this.scene_main_camera, this.scene_main_renderer);
+      this.sceneOrbitcontrols.update();
     });
-
-    // 监听鼠标双击事件
-    // this.$robotView.addEventListener("dblclick", () => {
-    //   // 获取当前状态
-    //   // const fullscreenElement = document.fullscreenElement;
-    //   // if (fullscreenElement) {
-    //   //   // 退出全屏
-    //   //   document.exitFullscreen();
-    //   //   return;
-    //   // }
-    //   // // 请求画布全屏
-    //   // this.$robotView.requestFullscreen();
-    // });
   }
 
   setMainScene = (name) => {
-    this.setState({ mainScene: name }, () => {
-      this.robot.updateRender();
-      resizeRenderer(this.scene_main_camera, this.scene_main_renderer);
-    });
+    const { mainScene } = this.state;
+    if (mainScene !== name) {
+      this.setState({ mainScene: name }, () => {
+        this.robot.updateRender();
+        resizeRenderer(this.scene_main_camera, this.scene_main_renderer);
+      });
+    }
   };
 
   render() {
@@ -419,7 +417,6 @@ export default class Robot extends React.Component {
           <canvas
             id="scene_robot_thrid"
             onDoubleClick={(e) => {
-              e.stopPropagation();
               this.setMainScene("scene_robot_thrid");
             }}
             className={
@@ -431,7 +428,6 @@ export default class Robot extends React.Component {
           <canvas
             id="scene_robot_first"
             onDoubleClick={(e) => {
-              e.stopPropagation();
               this.setMainScene("scene_robot_first");
             }}
             className={
