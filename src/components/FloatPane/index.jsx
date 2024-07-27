@@ -170,7 +170,7 @@ const ControlPanel = () => {
             ))}
           </div>
         </div>
-        <FollowCheckBox></FollowCheckBox>
+        {/* <FollowCheckBox></FollowCheckBox> */}
         <RobotPlyaer></RobotPlyaer>
       </div>
     </div>
