@@ -16,20 +16,20 @@ export const useRobotStore = create<Store>((set, get) => ({
   isLongPressing: false,
   player: false,
   setFollow: (follow: boolean) => set({ follow }),
-  postClickMessage: (type: string) => {
+  move: (direction: string) => {
     const runing = get().runing;
     if (!runing) {
       return;
     }
-    postMessage("fetchAction", type);
+    eventBus.emit("fetchAction", direction);
   },
   start: () => {
     set({ runing: true });
-    postMessage("fetchAction", "start");
+    postMessage("fetchStart", "start");
   },
   stop: () => {
     set({ runing: false });
-    postMessage("fetchAction", "stop");
+    postMessage("fetchStop", "stop");
   },
   reset: () => {
     eventBus.emit("reset");

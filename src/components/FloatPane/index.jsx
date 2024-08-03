@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState ,memo} from "react";
+import React, { useCallback, useEffect, useState, memo } from "react";
 import styles from "./index.module.less";
 import classnames from "classnames";
 import keymaster from "hotkeys-js";
@@ -12,12 +12,12 @@ const keyActions = [
   { label: "右", type: "right", keyCode: "d" },
   { label: "前", type: "ahead", keyCode: "shift" },
   { label: "后", type: "behind", keyCode: "ctrl" },
-  { label: "roll+", type: "roll+", keyCode: "num_1" },
-  { label: "roll-", type: "roll-", keyCode: "num_2" },
-  { label: "pitch+", type: "pitch+", keyCode: "num_4" },
-  { label: "pitch-", type: "pitch-", keyCode: "num_5" },
-  { label: "yaw+", type: "yaw+", keyCode: "num_7" },
-  { label: "yaw-", type: "yaw-", keyCode: "num_8" },
+  { label: "roll+", type: "roll_plus", keyCode: "num_1" },
+  { label: "roll-", type: "roll_minus", keyCode: "num_2" },
+  { label: "pitch+", type: "pitch_plus", keyCode: "num_4" },
+  { label: "pitch-", type: "pitch_minus", keyCode: "num_5" },
+  { label: "yaw+", type: "yaw_plus", keyCode: "num_7" },
+  { label: "yaw-", type: "yaw_minus", keyCode: "num_8" },
 ];
 
 const TypeSelect = () => {
@@ -56,33 +56,35 @@ const RobotPlyaer = () => {
   const player = useRobotStore((state) => state.player);
   const playerStart = useRobotStore((state) => state.playerStart);
   const playerStop = useRobotStore((state) => state.playerStop);
-  return <div className="flex flex-wrap justify-center mt-4">
-    <input
-      type="checkbox"
-      value={player}
-      checked={player}
-      onChange={(e) => {
-        if (e.target.checked) {
-          playerStart()
-        } else {
-          playerStop()
-        }
-      }}
-    />
-    <span className="ml-2 text-white">机械臂运动</span>
-  </div>
-}
+  return (
+    <div className="flex flex-wrap justify-center mt-4">
+      <input
+        type="checkbox"
+        value={player}
+        checked={player}
+        onChange={(e) => {
+          if (e.target.checked) {
+            playerStart();
+          } else {
+            playerStop();
+          }
+        }}
+      />
+      <span className="ml-2 text-white">机械臂运动</span>
+    </div>
+  );
+};
 
 const ControlPanel = memo(() => {
-  const { runing, postClickMessage, start, stop, reset } = useRobotStore();
+  const { runing, move, start, stop, reset } = useRobotStore();
   const disabledClass = `disabled:bg-gray-300 disabled:text-gray-700 disabled:cursor-not-allowed`;
 
   useEffect(() => {
     /**注册键盘事件 */
     keyActions.forEach((keyAction) => {
-      const { keyCode, label, type } = keyAction;
+      const { keyCode, type } = keyAction;
       keymaster(keyCode, () => {
-        postClickMessage(type);
+        move(type);
       });
     });
     return () => {
@@ -144,6 +146,7 @@ const ControlPanel = memo(() => {
           </button>
         </div>
         <div className={styles.contaner}>
+          {/* 位置移动 */}
           <div
             className={classnames(
               "flex flex-wrap justify-center",
@@ -153,11 +156,11 @@ const ControlPanel = memo(() => {
             {keyActions.map((o) => (
               <LongPressButton
                 onLongPress={() => {
-                  postClickMessage(o.type);
+                  move(o.type);
                 }}
                 // <button
                 disabled={!runing}
-                onClick={() => postClickMessage(o.type)}
+                onClick={() => move(o.type)}
                 key={o.type}
                 className={classnames(
                   "bg-green-500 hover:bg-green-600 w-16 text-white py-2 px-4 rounded-md m-1 text-sm",
@@ -182,7 +185,7 @@ export default function FloatPane() {
     <section>
       <ControlPanel />
       {/* gui Control class */}
-      <div id={guiContainerId} className={styles.guiContainer}  ></div>
+      <div id={guiContainerId} className={styles.guiContainer}></div>
       {/* <div className={classnames(styles.FloatPane, "blue-box-shadow","mt-10")}>
           <div>操作面板</div>
         </div> */}
